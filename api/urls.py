@@ -4,6 +4,7 @@ import api.views
 urlpatterns = [
     url(r'^test$', api.views.test, name='test'),
     url(r'^save', api.views.save_person_info, name='save'),
-    url(r'^person', api.views.retrieve_person, name='retrieve'),
-    url(r'^department', api.views.get_detailed_person, name='department')
+    url(r'^person', api.views.retrieve_person, name='person'),
+    url(r'^detail', api.views.get_detailed_person, name='detail'),
+    url(r'^manage', api.views.manage_each_person, name='manage')
 ]
