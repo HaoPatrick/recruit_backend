@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.http import HttpResponse
-from api.models import PersonInfo, Management, Assessment
+from api.models import PersonInfo, Assessment
 from django.core import serializers
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.datastructures import MultiValueDictKeyError
@@ -120,17 +120,25 @@ def retrieve_person(request):
 @csrf_exempt
 def manage_each_person(request):
     if request.method == 'POST':
+        inclination_one_time = ''
+        inclination_two_time = ''
+        if_star = 0
         try:
             student_id = request.POST['student_id']
-            inclination_one_time = request.POST['inc_one']
-            inclination_two_time = request.POST['inc_two']
-            star = int(request.POST['star'])
-            if star == 0:
-                if_star = False
-            elif star == 1:
-                if_star = True
+            if request.POST.get('inc_one'):
+                inclination_one_time = request.POST['inc_one']
+            elif request.POST.get('inc_two'):
+                inclination_two_time = request.POST['inc_two']
             else:
-                raise MultiValueDictKeyError
+                raise IndexError
+            if request.POST.get('star'):
+                star = int(request.POST['star'])
+                if star == 0:
+                    if_star = False
+                elif star == 1:
+                    if_star = True
+                else:
+                    raise MultiValueDictKeyError
             person = PersonInfo.objects.filter(student_id=student_id)[0]
         except MultiValueDictKeyError:
             return HttpResponse('Errrrrrrrrrrrrrrrrrror 110')
@@ -139,21 +147,11 @@ def manage_each_person(request):
         # TODO: simple validate
         if if_star:
             person.star_amount += 1
-        person.management_set.create(
-            inclination_one_time=inclination_one_time,
-            inclination_two_time=inclination_two_time,
-            if_star=if_star
-        )
+        if inclination_one_time:
+            person.inc_one_time = inclination_one_time
+        if inclination_two_time:
+            person.inc_two_time = inclination_two_time
+        person.save()
         return HttpResponse('OK')
-    elif request.method == 'GET':
-        try:
-            student_id = request.GET['student_id']
-            student = PersonInfo.objects.filter(student_id=student_id)[0]
-        except MultiValueDictKeyError:
-            return HttpResponse('Error 110')
-        except IndexError:
-            return HttpResponse('Error 233')
-        json_student = serializers.serialize('json', student.management_set.all())
-        return HttpResponse(json_student, content_type='application/json')
 
     return HttpResponse('Oh my bad guy')
