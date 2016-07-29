@@ -34,10 +34,9 @@ def save_person_info(request):
         except Exception as e:
             return HttpResponse('Errrrrrrrrrrrror 110' + str(e))
         # TODO: Validate the post data
-        data_collection = [
-            name, student_id, gender, major, phone_number, self_intro, question_one, question_two,
-            inclination_one, inclination_two, share_work, photo, user_agent, time_spend
-        ]
+        time_min = int(time_spend / 60)
+        time_sec = time_spend - time_min * 60
+        time_spend = str(time_min) + ' min ' + str(time_sec) + ' s'
         is_spam = False
         PersonInfo.objects.create(
             name=name,
