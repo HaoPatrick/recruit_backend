@@ -1,7 +1,5 @@
-import functools
 from datetime import datetime
 from api.models import AuthCookie
-from django.http import HttpResponse
 from django.core.exceptions import ObjectDoesNotExist
 
 
@@ -44,7 +42,6 @@ def auth_cookie(cookie_value):
 
 def login_required(request):
     try:
-        print('get here')
         if request.POST.get('cookie'):
             token_valid = auth_cookie(request.POST['cookie'])
             if not token_valid:

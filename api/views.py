@@ -7,6 +7,9 @@ from django.core.exceptions import ObjectDoesNotExist
 from api.authenticate import user_and_password_auth
 from api.authenticate import generate_cookie
 from api.authenticate import login_required
+from django.http import JsonResponse
+import json
+
 
 # Create your views here.
 def test(request):
@@ -22,7 +25,10 @@ def authentication(request):
         if if_correct:
             response_cookie = generate_cookie()
             AuthCookie.objects.create(cookie_value=response_cookie)
-            return HttpResponse('Success:' + response_cookie)
+            return JsonResponse({
+                'login': 'OK',
+                'response_token': response_cookie
+            })
         else:
             return HttpResponse('Authenticate failed')
     else:
