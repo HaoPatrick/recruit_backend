@@ -41,3 +41,10 @@ class Assessment(models.Model):
 
     def __str__(self):
         return self.person_name
+
+
+class AuthCookie(models.Model):
+    cookie_value = models.TextField()
+    expire_time = models.TextField()
+    date_time = models.DateTimeField(auto_now_add=True)
+

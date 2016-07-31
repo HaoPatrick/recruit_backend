@@ -1,14 +1,31 @@
-from django.shortcuts import render
 from django.http import HttpResponse
 from api.models import PersonInfo, Assessment
 from django.core import serializers
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.datastructures import MultiValueDictKeyError
+from django.core.exceptions import ObjectDoesNotExist
+from api.authenticate import user_and_password_auth
+from api.authenticate import generate_cookie
 
 
 # Create your views here.
 def test(request):
     return HttpResponse('Test OK')
+
+
+@csrf_exempt
+def authentication(request):
+    if request.method == 'POST':
+        user_name = request.POST['user_name']
+        pass_word = request.POST['pass_word']
+        if_correct = user_and_password_auth(user=user_name, password=pass_word)
+        if if_correct:
+            response_cookie = generate_cookie()
+            return HttpResponse('Success:' + response_cookie)
+        else:
+            return HttpResponse('Authenticate failed')
+    else:
+        return HttpResponse('Bad boy...')
 
 
 @csrf_exempt
@@ -38,23 +55,38 @@ def save_person_info(request):
         time_sec = time_spend - time_min * 60
         time_spend = str(time_min) + ' min ' + str(time_sec) + ' s'
         is_spam = False
-        PersonInfo.objects.create(
-            name=name,
-            student_id=student_id,
-            gender=gender,
-            major=major,
-            phone_number=phone_number,
-            self_intro=self_intro,
-            question_one=question_one,
-            question_two=question_two,
-            inclination_one=inclination_one,
-            inclination_two=inclination_two,
-            share_work=share_work,
-            photo=photo,
-            user_agent=user_agent,
-            time_spend=time_spend,
-            is_spam=str(is_spam)
-        )
+        try:
+            person = PersonInfo.objects.get(student_id=student_id)
+            person.name = name
+            person.gender = gender
+            person.major = major
+            person.phone_number = phone_number
+            person.self_intro = self_intro
+            person.question_one = question_one
+            person.inclination_one = inclination_one
+            person.inclination_two = inclination_two
+            person.photo = photo
+            person.share_work = share_work
+            person.time_spend += time_spend
+            person.save()
+        except ObjectDoesNotExist:
+            PersonInfo.objects.create(
+                name=name,
+                student_id=student_id,
+                gender=gender,
+                major=major,
+                phone_number=phone_number,
+                self_intro=self_intro,
+                question_one=question_one,
+                question_two=question_two,
+                inclination_one=inclination_one,
+                inclination_two=inclination_two,
+                share_work=share_work,
+                photo=photo,
+                user_agent=user_agent,
+                time_spend=time_spend,
+                is_spam=str(is_spam)
+            )
         return HttpResponse('OK')
     else:
         return HttpResponse('Error 233')
