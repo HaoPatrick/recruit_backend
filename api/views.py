@@ -1,12 +1,12 @@
 from django.http import HttpResponse
-from api.models import PersonInfo, Assessment
+from api.models import PersonInfo, Assessment, AuthCookie
 from django.core import serializers
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.datastructures import MultiValueDictKeyError
 from django.core.exceptions import ObjectDoesNotExist
 from api.authenticate import user_and_password_auth
 from api.authenticate import generate_cookie
-
+from api.authenticate import login_required
 
 # Create your views here.
 def test(request):
@@ -21,6 +21,7 @@ def authentication(request):
         if_correct = user_and_password_auth(user=user_name, password=pass_word)
         if if_correct:
             response_cookie = generate_cookie()
+            AuthCookie.objects.create(cookie_value=response_cookie)
             return HttpResponse('Success:' + response_cookie)
         else:
             return HttpResponse('Authenticate failed')
@@ -30,6 +31,8 @@ def authentication(request):
 
 @csrf_exempt
 def save_person_info(request):
+    if not login_required(request):
+        return HttpResponse('Authenticate error')
     if request.method == 'POST':
         try:
             name = request.POST['name']
@@ -93,6 +96,8 @@ def save_person_info(request):
 
 
 def get_detailed_person(request):
+    if not login_required(request):
+        return HttpResponse('Authenticate error')
     if request.method == 'GET':
         query_by_department = []
         query_by_id = []
@@ -118,6 +123,8 @@ def get_detailed_person(request):
 
 
 def retrieve_person(request):
+    if not login_required(request):
+        return HttpResponse('Authenticate error')
     if request.method == 'GET':
         query_start = 0
         query_end = 0
@@ -150,6 +157,8 @@ def retrieve_person(request):
 
 @csrf_exempt
 def manage_each_person(request):
+    if not login_required(request):
+        return HttpResponse('Authenticate error')
     if request.method == 'POST':
         inclination_one_time = ''
         inclination_two_time = ''

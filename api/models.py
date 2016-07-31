@@ -45,6 +45,6 @@ class Assessment(models.Model):
 
 class AuthCookie(models.Model):
     cookie_value = models.TextField()
-    expire_time = models.TextField()
+    expire_time = models.IntegerField(default=1)
+    is_valid = models.BooleanField(default=True)
     date_time = models.DateTimeField(auto_now_add=True)
-
