@@ -128,24 +128,18 @@ def manage_each_person(request):
                 inclination_one_time = request.POST['inc_one']
             elif request.POST.get('inc_two'):
                 inclination_two_time = request.POST['inc_two']
-            else:
-                raise IndexError
             if request.POST.get('star'):
-                star = int(request.POST['star'])
-                if star == 0:
-                    if_star = False
-                elif star == 1:
-                    if_star = True
-                else:
-                    raise MultiValueDictKeyError
+                if_star = int(request.POST['star'])
             person = PersonInfo.objects.filter(student_id=student_id)[0]
         except MultiValueDictKeyError:
             return HttpResponse('Errrrrrrrrrrrrrrrrrror 110')
         except IndexError:
             return HttpResponse('Error 233')
         # TODO: simple validate
-        if if_star:
+        if if_star == 1:
             person.star_amount += 1
+        elif if_star == 2:
+            person.star_amount -= 1
         if inclination_one_time:
             person.inc_one_time = inclination_one_time
         if inclination_two_time:
