@@ -7,5 +7,6 @@ urlpatterns = [
     url(r'^person', api.views.retrieve_person, name='person'),
     url(r'^detail', api.views.get_detailed_person, name='detail'),
     url(r'^manage', api.views.manage_each_person, name='manage'),
-    url(r'auth', api.views.authentication, name='auth')
+    url(r'^auth', api.views.authentication, name='auth'),
+    url(r'^department', api.views.department_info, name='department')
 ]

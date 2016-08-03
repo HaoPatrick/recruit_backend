@@ -1,5 +1,5 @@
 from django.http import HttpResponse
-from api.models import PersonInfo, Assessment, AuthCookie
+from api.models import PersonInfo, Assessment, AuthCookie, Department
 from django.core import serializers
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.datastructures import MultiValueDictKeyError
@@ -195,3 +195,30 @@ def manage_each_person(request):
         return HttpResponse('OK')
 
     return HttpResponse('Oh my bad guy')
+
+
+@csrf_exempt
+def department_info(request):
+    if request.method == 'POST':
+        try:
+            name = request.POST['name']
+            desc = request.POST['desc']
+            question = request.POST['ques']
+        except MultiValueDictKeyError:
+            return HttpResponse('Error 110')
+        Department.objects.create(
+            name=name,
+            desc=desc,
+            question=question
+        )
+        return HttpResponse('OK')
+    elif request.method == 'GET':
+        try:
+            name = request.GET['name']
+            target_depart = Department.objects.first(name=name)
+        except MultiValueDictKeyError:
+            return HttpResponse('Error 110')
+        except ObjectDoesNotExist:
+            return HttpResponse('Does not exist')
+        json_depart = serializers.serialize('json', target_depart)
+        return HttpResponse(json_depart, content_type='application/json')

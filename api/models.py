@@ -48,3 +48,11 @@ class AuthCookie(models.Model):
     expire_time = models.IntegerField(default=1)
     is_valid = models.BooleanField(default=True)
     date_time = models.DateTimeField(auto_now_add=True)
+
+
+class Department(models.Model):
+    name = models.TextField(max_length=100)
+    desc = models.TextField()
+    question = models.TextField()
+    created_time = models.DateTimeField(auto_now_add=True)
+

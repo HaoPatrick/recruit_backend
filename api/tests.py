@@ -1,6 +1,6 @@
 from django.test import TestCase, Client
 import json
-from api.models import PersonInfo
+from api.models import PersonInfo, Department
 
 
 # Create your tests here.
@@ -153,3 +153,17 @@ class RetrievePersonInfo(TestCase):
         json_detail = json.loads(detail_response.content.decode('utf-8'))[0]
         self.assertEqual(json_detail['fields']['name'], 'hao')
         self.assertEqual(json_detail['fields']['photo'], 'photo')
+
+
+class DepartmentManage(TestCase):
+    def test_save_info(self):
+        c = Client()
+        response = c.post('/api/department', {
+            'name': '技术研发中心',
+            'desc': '全浙大最强技术',
+            'ques': '你是咸鱼吗？'
+        })
+        self.assertEqual(response.content, b'OK')
+        current_depart = Department.objects.first()
+        self.assertEqual(current_depart.name, '技术研发中心')
+        self.assertEqual(current_depart.desc, '全浙大最强技术')
