@@ -25,10 +25,8 @@ def authentication(request):
         if if_correct:
             response_cookie = generate_cookie()
             AuthCookie.objects.create(cookie_value=response_cookie)
-            return JsonResponse({
-                'login': 'OK',
-                'response_token': response_cookie
-            })
+            json_response = json.dumps([{'login': 'OK', 'response_token': response_cookie}])
+            return HttpResponse(json_response, content_type='application/json')
         else:
             return HttpResponse('Authenticate failed')
     else:
@@ -37,8 +35,6 @@ def authentication(request):
 
 @csrf_exempt
 def save_person_info(request):
-    if not login_required(request):
-        return HttpResponse('Authenticate error')
     if request.method == 'POST':
         try:
             name = request.POST['name']
