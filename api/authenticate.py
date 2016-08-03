@@ -9,8 +9,6 @@ def user_and_password_auth(user, password):
     with open(os.path.join(base, 'info.txt'), 'r') as f:
         correct_user = f.readline()[:-1]
         correct_pass = f.readline()
-    print(correct_user + user + '\n')
-    print(correct_pass + password)
     if user == correct_user and password == correct_pass:
         return True
     else:
@@ -34,7 +32,7 @@ def auth_cookie(cookie_value):
     stored_day = token.date_time.day
     stored_month = token.date_time.month
     current_time = datetime.now()
-    if stored_month == current_time.month and (stored_day == current_time.day or stored_day == current_time.day - 1):
+    if stored_month == current_time.month and stored_day == current_time.day:
         return True
     else:
         return False
