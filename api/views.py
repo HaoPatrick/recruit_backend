@@ -7,7 +7,6 @@ from django.core.exceptions import ObjectDoesNotExist
 from api.authenticate import user_and_password_auth
 from api.authenticate import generate_cookie
 from api.authenticate import login_required
-from django.http import JsonResponse
 import json
 
 
@@ -19,16 +18,21 @@ def test(request):
 @csrf_exempt
 def authentication(request):
     if request.method == 'POST':
-        user_name = request.POST['user_name']
-        pass_word = request.POST['pass_word']
-        if_correct = user_and_password_auth(user=user_name, password=pass_word)
-        if if_correct:
-            response_cookie = generate_cookie()
-            AuthCookie.objects.create(cookie_value=response_cookie)
-            json_response = json.dumps([{'login': 'OK', 'response_token': response_cookie}])
-            return HttpResponse(json_response, content_type='application/json')
-        else:
+        try:
+            user_name = request.POST['user_name']
+            pass_word = request.POST['pass_word']
+            if_correct = user_and_password_auth(user=user_name, password=pass_word)
+            if if_correct:
+                response_cookie = generate_cookie()
+                AuthCookie.objects.create(cookie_value=response_cookie)
+                json_response = json.dumps([{'login': 'OK', 'response_token': response_cookie}])
+                return HttpResponse(json_response, content_type='application/json')
+            else:
+                return HttpResponse('Authenticate failed')
+        except MultiValueDictKeyError:
             return HttpResponse('Authenticate failed')
+        except Exception as e:
+            return HttpResponse(e)
     else:
         return HttpResponse('Bad boy...')
 
