@@ -51,8 +51,8 @@ class AuthCookie(models.Model):
 
 
 class Department(models.Model):
+    nick_name = models.TextField(max_length=100, default='')
     name = models.TextField(max_length=100)
     desc = models.TextField()
     question = models.TextField()
     created_time = models.DateTimeField(auto_now_add=True)
-
