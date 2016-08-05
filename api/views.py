@@ -228,7 +228,7 @@ def department_info(request):
             name = request.GET['name']
             target_depart = Department.objects.filter(name=name)
         except MultiValueDictKeyError:
-            return HttpResponse('Error 110')
+            target_depart = Department.objects.all()
         except ObjectDoesNotExist:
             return HttpResponse('Does not exist')
         json_depart = serializers.serialize('json', target_depart)

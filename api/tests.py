@@ -209,3 +209,21 @@ class DepartmentManage(TestCase):
         target_depart = Department.objects.first()
         self.assertEqual(target_depart.desc, 'def')
         self.assertEqual(target_depart.question, '233')
+
+    def test_fetch_all(self):
+        AuthCookie.objects.create(cookie_value='123')
+        Department.objects.create(nick_name='tech',
+                                  name='tech',
+                                  desc='asb',
+                                  question='aaa')
+        Department.objects.create(nick_name='bala',
+                                  name='haha',
+                                  desc='aslkdj',
+                                  question='aaa')
+        c = Client()
+        response = c.get('/api/department', {
+            'cookie': '123'
+        })
+        json_response = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(json_response[0]['fields']['nick_name'], 'tech')
+        self.assertEqual(json_response[1]['fields']['desc'], 'aslkdj')
