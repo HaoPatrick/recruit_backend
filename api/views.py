@@ -199,23 +199,34 @@ def manage_each_person(request):
 
 @csrf_exempt
 def department_info(request):
+    if not login_required(request):
+        return HttpResponse('Authenticate error')
     if request.method == 'POST':
         try:
+            nick_name = request.POST['niname']
             name = request.POST['name']
             desc = request.POST['desc']
             question = request.POST['ques']
         except MultiValueDictKeyError:
             return HttpResponse('Error 110')
-        Department.objects.create(
-            name=name,
-            desc=desc,
-            question=question
-        )
+        try:
+            target = Department.objects.get(nick_name=nick_name)
+        except ObjectDoesNotExist:
+            target = Department.objects.create(
+                name=name,
+                desc=desc,
+                question=question,
+                nick_name=nick_name
+            )
+        target.name = name
+        target.desc = desc
+        target.question = question
+        target.save()
         return HttpResponse('OK')
     elif request.method == 'GET':
         try:
             name = request.GET['name']
-            target_depart = Department.objects.first(name=name)
+            target_depart = Department.objects.filter(name=name)
         except MultiValueDictKeyError:
             return HttpResponse('Error 110')
         except ObjectDoesNotExist:
