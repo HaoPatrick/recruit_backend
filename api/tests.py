@@ -1,6 +1,6 @@
 from django.test import TestCase, Client
 import json
-from api.models import PersonInfo, Department
+from api.models import PersonInfo, Department, AuthCookie
 
 
 # Create your tests here.
@@ -157,13 +157,55 @@ class RetrievePersonInfo(TestCase):
 
 class DepartmentManage(TestCase):
     def test_save_info(self):
+        AuthCookie.objects.create(cookie_value='123')
+        c = Client()
+        response = c.post('/api/department', {
+            'niname': 'tech',
+            'name': '技术研发中心',
+            'desc': '全浙大最强技术',
+            'ques': '你是咸鱼吗？',
+            'cookie': '123'
+        })
+        self.assertEqual(response.content, b'OK')
+        current_depart = Department.objects.first()
+        self.assertEqual(current_depart.name, '技术研发中心')
+        self.assertEqual(current_depart.desc, '全浙大最强技术')
+
+    def test_without_token(self):
         c = Client()
         response = c.post('/api/department', {
             'name': '技术研发中心',
             'desc': '全浙大最强技术',
             'ques': '你是咸鱼吗？'
         })
+        self.assertEqual(response.content, b'Authenticate error')
+        self.assertEqual(Department.objects.count(), 0)
+
+    def test_retrieve_info(self):
+        Department.objects.create(name='tech', desc='abc', question='haha')
+        AuthCookie.objects.create(cookie_value='123')
+        c = Client()
+        response = c.get('/api/department', {
+            'name': 'tech',
+            'cookie': '123'
+        })
+        json_response = json.loads(response.content.decode('utf-8'))[0]['fields']
+        self.assertEqual(json_response['name'], 'tech')
+        self.assertEqual(json_response['desc'], 'abc')
+        self.assertEqual(json_response['question'], 'haha')
+
+    def test_multi_entry(self):
+        AuthCookie.objects.create(cookie_value='123')
+        Department.objects.create(nick_name='tech', name='tech', desc='abc', question='haha')
+        c = Client()
+        response = c.post('/api/department', {
+            'niname': 'tech',
+            'name': 'tech',
+            'cookie': '123',
+            'desc': 'def',
+            'ques': '233'
+        })
         self.assertEqual(response.content, b'OK')
-        current_depart = Department.objects.first()
-        self.assertEqual(current_depart.name, '技术研发中心')
-        self.assertEqual(current_depart.desc, '全浙大最强技术')
+        target_depart = Department.objects.first()
+        self.assertEqual(target_depart.desc, 'def')
+        self.assertEqual(target_depart.question, '233')
