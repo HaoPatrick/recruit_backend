@@ -23,6 +23,7 @@ class PersonInfo(models.Model):
     inc_two_time = models.TextField(max_length=100, default='0')
     star_amount = models.IntegerField(default=0)
     is_spam = models.TextField(max_length=100, default='false')
+    deleted = models.BooleanField(default=False)
 
     def __str__(self):
         return self.name
@@ -49,10 +50,17 @@ class AuthCookie(models.Model):
     is_valid = models.BooleanField(default=True)
     date_time = models.DateTimeField(auto_now_add=True)
 
+    def __str__(self):
+        return self.date_time
+
 
 class Department(models.Model):
     nick_name = models.TextField(max_length=100, default='')
     name = models.TextField(max_length=100)
     desc = models.TextField()
     question = models.TextField()
+    deleted = models.BooleanField(default=False)
     created_time = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.nick_name

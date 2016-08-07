@@ -8,5 +8,7 @@ urlpatterns = [
     url(r'^detail', api.views.get_detailed_person, name='detail'),
     url(r'^manage', api.views.manage_each_person, name='manage'),
     url(r'^auth', api.views.authentication, name='auth'),
-    url(r'^department', api.views.department_info, name='department')
+    url(r'^department', api.views.department_info, name='department'),
+    url(r'^delete', api.views.delete_item, name='delete'),
+    url(r'^recycle',api.views.recycle,name='recycle')
 ]

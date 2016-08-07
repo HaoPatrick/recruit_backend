@@ -29,6 +29,15 @@ class NewPostTest(TestCase):
         self.assertEqual(new_item.name, 'hao')
         self.assertEqual(new_item.photo, 'photo')
 
+    def test_do_not_get_deleted_person(self):
+        PersonInfo.objects.create(name='abc', deleted=True)
+        AuthCookie.objects.create(cookie_value='123')
+        c = Client()
+        response = c.get('/api/person', {
+            'cookie': '123',
+        })
+        self.assertEqual(response.content, b'[]')
+
     def test_wrong_post_return_error(self):
         c = Client()
         response = c.post('/api/save', {
@@ -226,4 +235,44 @@ class DepartmentManage(TestCase):
         })
         json_response = json.loads(response.content.decode('utf-8'))
         self.assertEqual(json_response[0]['fields']['nick_name'], 'tech')
-        self.assertEqual(json_response[1]['fields']['desc'], 'aslkdj')
+        self.assertEqual(json_response[1]['fields']['question'], 'aaa')
+
+    def test_delete_department(self):
+        AuthCookie.objects.create(cookie_value='123')
+        Department.objects.create(nick_name='tech',
+                                  name='tech',
+                                  desc='asb',
+                                  question='aaa')
+        c = Client()
+        response = c.post('/api/delete', {
+            'cookie': '123',
+            'nick_name': 'tech'
+        })
+        self.assertEqual(response.content, b'OK')
+        self.assertEqual(Department.objects.first().deleted, True)
+
+
+def initialize_database():
+    PersonInfo.objects.create(name='name', student_id='123', gender='3', deleted=True)
+    AuthCookie.objects.create(cookie_value='123')
+
+
+class RecycleTest(TestCase):
+    def test_can_retrieve(self):
+        initialize_database()
+        c = Client()
+        response = c.get('/api/recycle', {
+            'cookie': '123'
+        })
+        json_response = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(json_response[0]['fields']['name'], 'name')
+
+    def test_recover_retrieve(self):
+        initialize_database()
+        c = Client()
+        c.post('/api/delete', {
+            'cookie': '123',
+            'student_id': '123',
+            'recover': '1'
+        })
+        self.assertEqual(PersonInfo.objects.first().deleted, False)

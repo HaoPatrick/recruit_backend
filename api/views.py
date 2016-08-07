@@ -111,15 +111,16 @@ def get_detailed_person(request):
         query_by_phone = []
         if request.GET.get('department'):
             department = request.GET['department']
-            department_persons_one = PersonInfo.objects.filter(inclination_one=department)
-            department_persons_two = PersonInfo.objects.filter(inclination_two=department)
+            department_persons_one = PersonInfo.objects.filter(inclination_one=department).exclude(deleted=True)
+            department_persons_two = PersonInfo.objects.filter(inclination_two=department).exclude(deleted=True)
             query_by_department = list(department_persons_one) + list(department_persons_two)
         if request.GET.get('student_id'):
-            query_by_id = list(PersonInfo.objects.filter(student_id=request.GET['student_id']))
+            query_by_id = list(PersonInfo.objects.filter(student_id=request.GET['student_id']).exclude(deleted=True))
         if request.GET.get('name'):
-            query_by_name = list(PersonInfo.objects.filter(name=request.GET['name']))
+            query_by_name = list(PersonInfo.objects.filter(name=request.GET['name']).exclude(deleted=True))
         if request.GET.get('phone_number'):
-            query_by_phone = list(PersonInfo.objects.filter(phone_number=request.GET['phone_number']))
+            query_by_phone = list(PersonInfo.objects.filter(
+                phone_number=request.GET['phone_number']).exclude(deleted=True))
         unique_set = set(query_by_id + query_by_phone + query_by_name + query_by_department)
         json_person = serializers.serialize('json', unique_set)
         return HttpResponse(json_person, content_type='application/json')
@@ -157,7 +158,7 @@ def retrieve_person(request):
                 all_person = PersonInfo.objects.all()
             else:
                 return HttpResponse('Erroooooooooor 110')
-        json_person = serializers.serialize('json', all_person)
+        json_person = serializers.serialize('json', all_person.exclude(deleted=True))
         return HttpResponse(json_person, content_type='application/json')
 
 
@@ -233,3 +234,41 @@ def department_info(request):
             return HttpResponse('Does not exist')
         json_depart = serializers.serialize('json', target_depart)
         return HttpResponse(json_depart, content_type='application/json')
+
+
+@csrf_exempt
+def delete_item(request):
+    if not login_required(request):
+        return HttpResponse('Authenticate error')
+    if request.method == 'POST':
+        if request.POST.get('nick_name'):
+            nick_name = request.POST['nick_name']
+            try:
+                department = Department.objects.get(nick_name=nick_name)
+            except ObjectDoesNotExist:
+                return HttpResponse('Does not exist')
+            if nick_name:
+                department.deleted = True
+                department.save()
+        if request.POST.get('student_id'):
+            student_id = request.POST['student_id']
+            recover_signal = request.POST['recover']
+            try:
+                student = PersonInfo.objects.get(student_id=student_id)
+            except ObjectDoesNotExist:
+                return HttpResponse('Does not exist')
+            if recover_signal == '1':
+                student.deleted = False
+            else:
+                student.deleted = True
+            student.save()
+        return HttpResponse('OK')
+
+
+def recycle(request):
+    if request.method == 'GET':
+        person = list(PersonInfo.objects.filter(deleted=True))
+        department = list(Department.objects.filter(deleted=True))
+        return_list = set(person + department)
+        return_list = serializers.serialize('json', return_list)
+        return HttpResponse(return_list, content_type='application/json')
