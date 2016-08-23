@@ -1,6 +1,19 @@
 from django.db import models
 
 
+class Department(models.Model):
+    nick_name = models.TextField(max_length=100, default='')
+    name = models.TextField(max_length=100)
+    desc = models.TextField()
+    question = models.TextField()
+    deleted = models.BooleanField(default=False)
+    created_time = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.nick_name
+
+
+# TODO:foreignkey add to department.
 class PersonInfo(models.Model):
     name = models.TextField(max_length=100)
     student_id = models.TextField(max_length=100)
@@ -34,9 +47,9 @@ class Assessment(models.Model):
     interviewer_name = models.TextField(max_length=100)
     date_time = models.DateTimeField(auto_now_add=True)
 
-    profession_rate = models.TextField(max_length=20)
-    cooperation_rate = models.TextField(max_length=20)
-    general_rate = models.TextField(max_length=20)
+    profession_rate = models.IntegerField()
+    cooperation_rate = models.IntegerField()
+    general_rate = models.IntegerField()
 
     comment = models.TextField(max_length=1000)
 
@@ -52,15 +65,3 @@ class AuthCookie(models.Model):
 
     def __str__(self):
         return self.date_time
-
-
-class Department(models.Model):
-    nick_name = models.TextField(max_length=100, default='')
-    name = models.TextField(max_length=100)
-    desc = models.TextField()
-    question = models.TextField()
-    deleted = models.BooleanField(default=False)
-    created_time = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return self.nick_name

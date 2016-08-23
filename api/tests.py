@@ -1,6 +1,6 @@
 from django.test import TestCase, Client
 import json
-from api.models import PersonInfo, Department, AuthCookie
+from api.models import PersonInfo, Department, AuthCookie, Assessment
 
 
 # Create your tests here.
@@ -246,6 +246,7 @@ class DepartmentManage(TestCase):
         c = Client()
         response = c.post('/api/delete', {
             'cookie': '123',
+            'recover': '0',
             'nick_name': 'tech'
         })
         self.assertEqual(response.content, b'OK')
@@ -254,7 +255,11 @@ class DepartmentManage(TestCase):
 
 def initialize_database():
     PersonInfo.objects.create(name='name', student_id='123', gender='3', deleted=True)
+    temp_person = PersonInfo.objects.create(name='name2', student_id='234', gender='2', deleted=False)
+    Department.objects.create(nick_name='123', name='abc', deleted=True)
+    Department.objects.create(nick_name='233', name='a2c', deleted=False)
     AuthCookie.objects.create(cookie_value='123')
+    temp_person.assessment_set.create(interviewer_name='aha', profession_rate=5, cooperation_rate=3, general_rate=4)
 
 
 class RecycleTest(TestCase):
@@ -276,3 +281,41 @@ class RecycleTest(TestCase):
             'recover': '1'
         })
         self.assertEqual(PersonInfo.objects.first().deleted, False)
+
+    def test_wont_get_deleted_department(self):
+        initialize_database()
+        c = Client()
+        response = c.get('/api/department', {
+            'cookie': '123'
+        })
+        response = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(len(response), 1)
+        self.assertEqual(Department.objects.count(), 2)
+
+
+class AssessmentTest(TestCase):
+    def test_can_save_assessment(self):
+        initialize_database()
+        c = Client()
+        response = c.post('/api/interview', {
+            'cookie': '123',
+            'stu_id': '234',
+            'inter': 'hao',
+            'profession': '10',
+            'cooper': '8',
+            'general': '10'
+        })
+        self.assertEqual(response.content.decode('utf-8'), 'OK')
+        new = Assessment.objects.get(interviewer_name='hao')
+        self.assertEqual(new.profession_rate, 10)
+
+    def test_can_retrieve_assessment(self):
+        initialize_database()
+        c = Client()
+        response = c.get('/api/interview', {
+            'cookie': '123',
+            'student_id': '234'
+        })
+        response = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(len(response), 1)
+        self.assertEqual(response[0]['fields']['interviewer_name'], 'aha')

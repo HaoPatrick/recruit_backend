@@ -200,9 +200,9 @@ def manage_each_person(request):
 
 @csrf_exempt
 def department_info(request):
-    if not login_required(request):
-        return HttpResponse('Authenticate error')
     if request.method == 'POST':
+        if not login_required(request):
+            return HttpResponse('Authenticate error')
         try:
             nick_name = request.POST['niname']
             name = request.POST['name']
@@ -227,9 +227,9 @@ def department_info(request):
     elif request.method == 'GET':
         try:
             name = request.GET['name']
-            target_depart = Department.objects.filter(name=name)
+            target_depart = Department.objects.filter(name=name).filter(deleted=False)
         except MultiValueDictKeyError:
-            target_depart = Department.objects.all()
+            target_depart = Department.objects.all().filter(deleted=False)
         except ObjectDoesNotExist:
             return HttpResponse('Does not exist')
         json_depart = serializers.serialize('json', target_depart)
@@ -243,13 +243,16 @@ def delete_item(request):
     if request.method == 'POST':
         if request.POST.get('nick_name'):
             nick_name = request.POST['nick_name']
+            recover_signal = request.POST['recover']
             try:
                 department = Department.objects.get(nick_name=nick_name)
             except ObjectDoesNotExist:
                 return HttpResponse('Does not exist')
-            if nick_name:
+            if recover_signal == '1':
+                department.deleted = False
+            else:
                 department.deleted = True
-                department.save()
+            department.save()
         if request.POST.get('student_id'):
             student_id = request.POST['student_id']
             recover_signal = request.POST['recover']
@@ -272,3 +275,42 @@ def recycle(request):
         return_list = set(person + department)
         return_list = serializers.serialize('json', return_list)
         return HttpResponse(return_list, content_type='application/json')
+
+
+@csrf_exempt
+def on_interview(request):
+    if not login_required(request):
+        return HttpResponse('Authenticate error')
+    if request.method == 'POST':
+        try:
+            student_id = request.POST['stu_id']
+            interviewer_name = request.POST['inter']
+            profession_rate = int(request.POST['profession'])
+            cooperation_rate = int(request.POST['cooper'])
+            general_rate = int(request.POST['general'])
+        except MultiValueDictKeyError:
+            return HttpResponse('Error 110')
+        except ValueError:
+            return HttpResponse('Error value')
+        try:
+            person = PersonInfo.objects.get(student_id=student_id)
+        except ObjectDoesNotExist:
+            return HttpResponse('Error 233')
+        person.assessment_set.create(
+            interviewer_name=interviewer_name,
+            profession_rate=profession_rate,
+            cooperation_rate=cooperation_rate,
+            general_rate=general_rate
+        )
+        return HttpResponse('OK')
+    if request.method == 'GET':
+        try:
+            student_id = request.GET['student_id']
+            student = PersonInfo.objects.get(student_id=student_id)
+        except MultiValueDictKeyError:
+            return HttpResponse('Error 110')
+        except ObjectDoesNotExist:
+            return HttpResponse('Error 233')
+        total_assessment = student.assessment_set.all()
+        json_response = serializers.serialize('json', total_assessment)
+        return HttpResponse(json_response, content_type='application/json')
