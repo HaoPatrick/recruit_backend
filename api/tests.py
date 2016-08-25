@@ -12,6 +12,7 @@ class NewPostTest(TestCase):
             'student_id': '3140102255',
             'gender': '2',
             'major': 'CS',
+            'grade': '1',
             'phone_number': '13208020663',
             'self_intro': 'Hello World. Test driven development',
             'question_one': 'Hello World. Test driven development',
@@ -45,6 +46,7 @@ class NewPostTest(TestCase):
             'student_id': '3140102255',
             'gender': '2',
             'major': 'CS',
+            'grade': '1',
             'phone_number': '13208020663',
             'self_intro': 'Hello World. Test driven development',
             'question_one': 'Hello World. Test driven development',
@@ -63,6 +65,7 @@ class NewPostTest(TestCase):
             'student_id': '3140102255',
             'gender': '2',
             'major': 'CS',
+            'grade': '1',
             'phone_number': '13208020663',
             'self_intro': 'Hello World. Test driven development',
             'question_one': 'Hello World. Test driven development',
@@ -84,6 +87,7 @@ class NewPostTest(TestCase):
             'student_id': '3140102255',
             'gender': '2',
             'major': 'CS',
+            'grade': '1',
             'phone_number': '13208020663',
             'self_intro': 'Hello World. Test driven development',
             'question_one': 'Hello World. Test driven development',
@@ -143,6 +147,7 @@ class RetrievePersonInfo(TestCase):
             'student_id': '3140102255',
             'gender': '2',
             'major': 'CS',
+            'grade': '1',
             'phone_number': '13208020663',
             'self_intro': 'Hello World. Test driven development',
             'question_one': 'Hello World. Test driven development',
@@ -259,7 +264,8 @@ def initialize_database():
     Department.objects.create(nick_name='123', name='abc', deleted=True)
     Department.objects.create(nick_name='233', name='a2c', deleted=False)
     AuthCookie.objects.create(cookie_value='123')
-    temp_person.assessment_set.create(interviewer_name='aha', profession_rate=5, cooperation_rate=3, general_rate=4)
+    temp_person.assessment_set.create(interviewer_name='aha', profession_rate=5, comment='123',
+                                      cooperation_rate=3, general_rate=4)
 
 
 class RecycleTest(TestCase):
@@ -303,7 +309,8 @@ class AssessmentTest(TestCase):
             'inter': 'hao',
             'profession': '10',
             'cooper': '8',
-            'general': '10'
+            'general': '10',
+            'comment': '123'
         })
         self.assertEqual(response.content.decode('utf-8'), 'OK')
         new = Assessment.objects.get(interviewer_name='hao')

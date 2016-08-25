@@ -18,6 +18,7 @@ class PersonInfo(models.Model):
     name = models.TextField(max_length=100)
     student_id = models.TextField(max_length=100)
     gender = models.TextField(max_length=100)
+    grade = models.TextField(max_length=100,default='1')
     major = models.TextField(max_length=100)
     phone_number = models.TextField(max_length=100)
     self_intro = models.TextField(max_length=100)

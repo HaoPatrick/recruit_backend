@@ -7,6 +7,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from api.authenticate import user_and_password_auth
 from api.authenticate import generate_cookie
 from api.authenticate import login_required
+from api.query import *
 import json
 
 
@@ -45,6 +46,7 @@ def save_person_info(request):
             student_id = request.POST['student_id']
             gender = request.POST['gender']
             major = request.POST['major']
+            grade = request.POST['grade']
             phone_number = request.POST['phone_number']
             self_intro = request.POST['self_intro']
             question_one = request.POST['question_one']
@@ -84,6 +86,7 @@ def save_person_info(request):
                 student_id=student_id,
                 gender=gender,
                 major=major,
+                grade=grade,
                 phone_number=phone_number,
                 self_intro=self_intro,
                 question_one=question_one,
@@ -105,26 +108,11 @@ def get_detailed_person(request):
     if not login_required(request):
         return HttpResponse('Authenticate error')
     if request.method == 'GET':
-        query_by_department = []
-        query_by_id = []
-        query_by_name = []
-        query_by_phone = []
-        if request.GET.get('department'):
-            department = request.GET['department']
-            department_persons_one = PersonInfo.objects.filter(inclination_one=department).exclude(deleted=True)
-            department_persons_two = PersonInfo.objects.filter(inclination_two=department).exclude(deleted=True)
-            query_by_department = list(department_persons_one) + list(department_persons_two)
-        if request.GET.get('student_id'):
-            query_by_id = list(PersonInfo.objects.filter(student_id=request.GET['student_id']).exclude(deleted=True))
-        if request.GET.get('name'):
-            query_by_name = list(PersonInfo.objects.filter(name=request.GET['name']).exclude(deleted=True))
-        if request.GET.get('phone_number'):
-            query_by_phone = list(PersonInfo.objects.filter(
-                phone_number=request.GET['phone_number']).exclude(deleted=True))
-        unique_set = set(query_by_id + query_by_phone + query_by_name + query_by_department)
-        json_person = serializers.serialize('json', unique_set)
+        if request.GET.get('exclude'):
+            json_person = detail_person_exclude_query(request)
+        else:
+            json_person = detail_person_combine_query(request)
         return HttpResponse(json_person, content_type='application/json')
-
     else:
         return HttpResponse('Error 233')
 
@@ -285,6 +273,7 @@ def on_interview(request):
         try:
             student_id = request.POST['stu_id']
             interviewer_name = request.POST['inter']
+            comment = request.POST['comment']
             profession_rate = int(request.POST['profession'])
             cooperation_rate = int(request.POST['cooper'])
             general_rate = int(request.POST['general'])
@@ -300,7 +289,8 @@ def on_interview(request):
             interviewer_name=interviewer_name,
             profession_rate=profession_rate,
             cooperation_rate=cooperation_rate,
-            general_rate=general_rate
+            general_rate=general_rate,
+            comment=comment
         )
         return HttpResponse('OK')
     if request.method == 'GET':
