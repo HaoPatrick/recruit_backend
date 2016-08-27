@@ -310,7 +310,9 @@ class AssessmentTest(TestCase):
             'profession': '10',
             'cooper': '8',
             'general': '10',
-            'comment': '123'
+            'comment': '123',
+            'express':'123',
+            'interesting':'123'
         })
         self.assertEqual(response.content.decode('utf-8'), 'OK')
         new = Assessment.objects.get(interviewer_name='hao')

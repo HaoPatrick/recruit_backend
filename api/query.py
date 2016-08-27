@@ -1,9 +1,9 @@
 from api.models import PersonInfo
 from django.core import serializers
-from django.http import HttpResponse
 from django.db.models import Q
 
 
+# TODO: Warning, no test below!!!
 def detail_person_exclude_query(request):
     total_person = PersonInfo.objects.filter(deleted=False)
     if request.GET.get('department'):
@@ -56,3 +56,26 @@ def detail_person_combine_query(request):
     unique_set = set(query_by_id + query_by_phone + query_by_name + query_by_department)
     json_person = serializers.serialize('json', unique_set)
     return json_person
+
+
+def recalculate_average_marks(person):
+    all_assessment = person.assessment_set.all().filter(deleted=False)
+    all_pro_rate = [pro.profession_rate for pro in all_assessment]
+    all_coop_rate = [coop.cooperation_rate for coop in all_assessment]
+    all_general_rate = [general.general_rate for general in all_assessment]
+    all_express = [express.expression_ability for express in all_assessment]
+    all_interest = [interest.interesting for interest in all_assessment]
+
+    average_express = sum(all_express) / float(len(all_express))
+    average_interest = sum(all_interest) / float(len(all_interest))
+    average_pro = sum(all_pro_rate) / float(len(all_pro_rate))
+    average_general = sum(all_general_rate) / float(len(all_general_rate))
+    average_cooper = sum(all_coop_rate) / float(len(all_coop_rate))
+    total_marks = average_express + average_pro + average_general + average_interest + average_cooper
+    all_assessment.update(average_pro=average_pro,
+                          average_general=average_general,
+                          average_cooper=average_cooper,
+                          average_expression=average_express,
+                          average_interesting=average_interest)
+    person.total_marks = total_marks
+    person.save()

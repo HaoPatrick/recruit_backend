@@ -253,6 +253,29 @@ def delete_item(request):
             else:
                 student.deleted = True
             student.save()
+        # TODO: No test here !!!
+        if request.POST.get('assessment'):
+            try:
+                recover_signal = request.POST['recover']
+                if request.POST.get('stu_id'):
+                    student = PersonInfo.objects.get(
+                        student_id=request.POST['stu_id'])
+                elif request.POST.get('stu_pk'):
+                    student = PersonInfo.objects.get(pk=request.POST['stu_pk'])
+                else:
+                    raise MultiValueDictKeyError
+                assess_pk = int(request.POST['pk'])
+                assessment = student.assessment_set.get(pk=assess_pk)
+            except ObjectDoesNotExist:
+                return HttpResponse('Does not exist')
+            except MultiValueDictKeyError:
+                return HttpResponse('Error 110')
+            if recover_signal == '1':
+                assessment.deleted = False
+            else:
+                assessment.deleted = True
+            assessment.save()
+            recalculate_average_marks(student)
         return HttpResponse('OK')
 
 
@@ -260,7 +283,8 @@ def recycle(request):
     if request.method == 'GET':
         person = list(PersonInfo.objects.filter(deleted=True))
         department = list(Department.objects.filter(deleted=True))
-        return_list = set(person + department)
+        assessment = list(Assessment.objects.filter(deleted=True))
+        return_list = set(person + department + assessment)
         return_list = serializers.serialize('json', return_list)
         return HttpResponse(return_list, content_type='application/json')
 
@@ -277,6 +301,8 @@ def on_interview(request):
             profession_rate = int(request.POST['profession'])
             cooperation_rate = int(request.POST['cooper'])
             general_rate = int(request.POST['general'])
+            expression_ability = int(request.POST['express'])
+            interesting = int(request.POST['interesting'])
         except MultiValueDictKeyError:
             return HttpResponse('Error 110')
         except ValueError:
@@ -290,8 +316,12 @@ def on_interview(request):
             profession_rate=profession_rate,
             cooperation_rate=cooperation_rate,
             general_rate=general_rate,
-            comment=comment
+            comment=comment,
+            expression_ability=expression_ability,
+            interesting=interesting
         )
+        # Update average assessment rate of the person
+        recalculate_average_marks(person)
         return HttpResponse('OK')
     if request.method == 'GET':
         try:
@@ -301,6 +331,6 @@ def on_interview(request):
             return HttpResponse('Error 110')
         except ObjectDoesNotExist:
             return HttpResponse('Error 233')
-        total_assessment = student.assessment_set.all()
+        total_assessment = student.assessment_set.all().filter(deleted=False)
         json_response = serializers.serialize('json', total_assessment)
         return HttpResponse(json_response, content_type='application/json')
