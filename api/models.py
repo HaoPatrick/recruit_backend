@@ -24,8 +24,11 @@ class PersonInfo(models.Model):
     self_intro = models.TextField(max_length=100)
     question_one = models.TextField(max_length=1000)
     question_two = models.TextField(max_length=1000)
+    # TODO: for capability and lazy Patrick
     inclination_one = models.TextField(max_length=100)
     inclination_two = models.TextField(max_length=100)
+    department = models.ManyToManyField(Department)
+
     share_work = models.TextField(max_length=100)
     photo = models.TextField(max_length=100)
     date_time = models.DateTimeField(auto_now_add=True)

@@ -1,6 +1,8 @@
-from api.models import PersonInfo
+from api.models import PersonInfo, Department
 from django.core import serializers
 from django.db.models import Q
+from django.core.exceptions import ObjectDoesNotExist
+from django.utils.datastructures import MultiValueDictKeyError
 
 
 # TODO: Warning, no test below!!!
@@ -79,3 +81,76 @@ def recalculate_average_marks(person):
                           average_interesting=average_interest)
     person.total_marks = total_marks
     person.save()
+
+
+def save_a_person_to_database(request):
+    try:
+        name = request.POST['name']
+        student_id = request.POST['student_id']
+        gender = request.POST['gender']
+        major = request.POST['major']
+        grade = request.POST['grade']
+        phone_number = request.POST['phone_number']
+        self_intro = request.POST['self_intro']
+        question_one = request.POST['question_one']
+        question_two = request.POST['question_two']
+        inclination_one = request.POST['inclination_one']
+        inclination_two = request.POST['inclination_two']
+        department_one = Department.objects.get(name=inclination_one)
+        department_two = Department.objects.get(name=inclination_two)
+        share_work = request.POST['share_work']
+        photo = request.POST['photo']
+        user_agent = request.POST['user_agent']
+        time_spend = int(int(request.POST['time_spend']) / 1000)
+    except MultiValueDictKeyError:
+        return False
+    except ObjectDoesNotExist:
+        return False
+    except ValueError:
+        return False
+    # TODO: Validate the post data
+    time_min = int(time_spend / 60)
+    time_sec = time_spend - time_min * 60
+    time_spend = str(time_min) + ' min ' + str(time_sec) + ' s'
+    is_spam = False
+    try:
+        person = PersonInfo.objects.get(student_id=student_id)
+        person.name = name
+        person.gender = gender
+        person.major = major
+        person.phone_number = phone_number
+        person.self_intro = self_intro
+        person.question_one = question_one
+        if person.inclination_one != inclination_one:
+            prv_depart = person.inclination_one
+            person.department.get(name=prv_depart).delete()
+            person.department.add(department_one)
+        if person.inclination_two != inclination_two:
+            prv_depart = person.inclination_two
+            person.department.get(name=prv_depart).delete()
+            person.department.add(department_two)
+        person.photo = photo
+        person.share_work = share_work
+        person.time_spend += time_spend
+        person.save()
+    except ObjectDoesNotExist:
+        person = PersonInfo.objects.create(
+            name=name,
+            student_id=student_id,
+            gender=gender,
+            major=major,
+            grade=grade,
+            phone_number=phone_number,
+            self_intro=self_intro,
+            question_one=question_one,
+            question_two=question_two,
+            inclination_one=inclination_one,
+            inclination_two=inclination_two,
+            share_work=share_work,
+            photo=photo,
+            user_agent=user_agent,
+            time_spend=time_spend,
+            is_spam=str(is_spam)
+        )
+        person.department.add(department_one, department_two)
+    return True

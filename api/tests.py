@@ -4,8 +4,14 @@ from api.models import PersonInfo, Department, AuthCookie, Assessment
 
 
 # Create your tests here.
+def initialize_department():
+    Department.objects.create(name='技术研发中心')
+    Department.objects.create(name='人力资源部门')
+
+
 class NewPostTest(TestCase):
     def test_can_save_a_post(self):
+        initialize_department()
         c = Client()
         response = c.post('/api/save', {
             'name': 'hao',
@@ -55,7 +61,7 @@ class NewPostTest(TestCase):
             'inclination_two': '人力资源部门',
             'time_spend': '123456'
         })
-        self.assertEqual(response.content, b'Errrrrrrrrrrrror 110')
+        self.assertEqual(response.content, b'Error 110')
         self.assertEqual(PersonInfo.objects.count(), 0)
 
     def test_time_spend_type_error(self):
@@ -135,6 +141,7 @@ class AuthenticTest(TestCase):
 
 class RetrievePersonInfo(TestCase):
     def test_can_retrieve_a_person(self):
+        initialize_department()
         c = Client()
         response = c.post('/api/auth', {
             'user_name': 'qscqscdadada',
@@ -311,8 +318,8 @@ class AssessmentTest(TestCase):
             'cooper': '8',
             'general': '10',
             'comment': '123',
-            'express':'123',
-            'interesting':'123'
+            'express': '123',
+            'interesting': '123'
         })
         self.assertEqual(response.content.decode('utf-8'), 'OK')
         new = Assessment.objects.get(interviewer_name='hao')

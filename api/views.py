@@ -1,9 +1,6 @@
 from django.http import HttpResponse
-from api.models import PersonInfo, Assessment, AuthCookie, Department
-from django.core import serializers
+from api.models import Assessment, AuthCookie
 from django.views.decorators.csrf import csrf_exempt
-from django.utils.datastructures import MultiValueDictKeyError
-from django.core.exceptions import ObjectDoesNotExist
 from api.authenticate import user_and_password_auth
 from api.authenticate import generate_cookie
 from api.authenticate import login_required
@@ -41,65 +38,11 @@ def authentication(request):
 @csrf_exempt
 def save_person_info(request):
     if request.method == 'POST':
-        try:
-            name = request.POST['name']
-            student_id = request.POST['student_id']
-            gender = request.POST['gender']
-            major = request.POST['major']
-            grade = request.POST['grade']
-            phone_number = request.POST['phone_number']
-            self_intro = request.POST['self_intro']
-            question_one = request.POST['question_one']
-            question_two = request.POST['question_two']
-            inclination_one = request.POST['inclination_one']
-            inclination_two = request.POST['inclination_two']
-            share_work = request.POST['share_work']
-            photo = request.POST['photo']
-            user_agent = request.POST['user_agent']
-            time_spend = int(int(request.POST['time_spend']) / 1000)
-        except MultiValueDictKeyError:
-            return HttpResponse('Errrrrrrrrrrrror 110')
-        except Exception as e:
-            return HttpResponse('Errrrrrrrrrrrror 110' + str(e))
-        # TODO: Validate the post data
-        time_min = int(time_spend / 60)
-        time_sec = time_spend - time_min * 60
-        time_spend = str(time_min) + ' min ' + str(time_sec) + ' s'
-        is_spam = False
-        try:
-            person = PersonInfo.objects.get(student_id=student_id)
-            person.name = name
-            person.gender = gender
-            person.major = major
-            person.phone_number = phone_number
-            person.self_intro = self_intro
-            person.question_one = question_one
-            person.inclination_one = inclination_one
-            person.inclination_two = inclination_two
-            person.photo = photo
-            person.share_work = share_work
-            person.time_spend += time_spend
-            person.save()
-        except ObjectDoesNotExist:
-            PersonInfo.objects.create(
-                name=name,
-                student_id=student_id,
-                gender=gender,
-                major=major,
-                grade=grade,
-                phone_number=phone_number,
-                self_intro=self_intro,
-                question_one=question_one,
-                question_two=question_two,
-                inclination_one=inclination_one,
-                inclination_two=inclination_two,
-                share_work=share_work,
-                photo=photo,
-                user_agent=user_agent,
-                time_spend=time_spend,
-                is_spam=str(is_spam)
-            )
-        return HttpResponse('OK')
+        result = save_a_person_to_database(request)
+        if result:
+            return HttpResponse('OK')
+        else:
+            return HttpResponse('Error 110')
     else:
         return HttpResponse('Error 233')
 
