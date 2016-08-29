@@ -269,10 +269,13 @@ def initialize_database():
     AuthCookie.objects.create(cookie_value='123')
     PersonInfo.objects.create(name='name', student_id='123', gender='3', deleted=True)
     Department.objects.create(nick_name='123', name='abc', deleted=True)
+
     temp_depart = Department.objects.create(nick_name='233', name='a2c', deleted=False)
     temp_person = temp_depart.personinfo_set.create(name='name2', student_id='234', gender='2', deleted=False)
     temp_person.assessment_set.create(interviewer_name='aha', profession_rate=5, comment='123',
-                                      cooperation_rate=3, general_rate=4)
+                                      cooperation_rate=3, general_rate=4, deleted=False)
+    # temp_person.assessment_set.create(interviewer_name='aha', profession_rate=5, comment='123',
+    #                                   cooperation_rate=3, general_rate=4, deleted=False)
 
 
 class RecycleTest(TestCase):
@@ -336,3 +339,35 @@ class AssessmentTest(TestCase):
         response = json.loads(response.content.decode('utf-8'))
         self.assertEqual(len(response), 1)
         self.assertEqual(response[0]['fields']['interviewer_name'], 'aha')
+
+    def test_can_delete_assessment(self):
+        initialize_database()
+        c = Client()
+        self.assertEqual(Assessment.objects.filter(deleted=False).count(), 1)
+        response = c.post('/api/delete', {
+            'cookie': '123',
+            'recover': '0',
+            'assessment': '1',
+            'stu_id': '234',
+            'pk': '1'
+        })
+        self.assertEqual(response.content, b'OK')
+        self.assertEqual(Assessment.objects.filter(deleted=True).count(), 1)
+
+    def test_can_recover_assessment(self):
+        initialize_database()
+        assessment = Assessment.objects.first()
+        assessment.deleted = True
+        assessment.save()
+        self.assertEqual(Assessment.objects.filter(deleted=False).count(), 0)
+        c = Client()
+        response = c.post('/api/delete', {
+            'cookie': '123',
+            'recover': '1',
+            'assessment': '1',
+            'stu_id': '234',
+            'pk': '1'
+        })
+        self.assertEqual(response.content, b'OK')
+        self.assertEqual(Assessment.objects.filter(deleted=True).count(), 0)
+        self.assertEqual(Assessment.objects.filter(deleted=False).count(), 1)

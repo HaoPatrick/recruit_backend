@@ -38,6 +38,7 @@ def detail_person_exclude_query(request):
     return json_person
 
 
+# Not implemented!
 def detail_person_combine_query(request):
     query_by_department = []
     query_by_id = []
@@ -69,19 +70,22 @@ def recalculate_average_marks(person):
     all_express = [express.expression_ability for express in all_assessment]
     all_interest = [interest.interesting for interest in all_assessment]
 
-    average_express = sum(all_express) / float(len(all_express))
-    average_interest = sum(all_interest) / float(len(all_interest))
-    average_pro = sum(all_pro_rate) / float(len(all_pro_rate))
-    average_general = sum(all_general_rate) / float(len(all_general_rate))
-    average_cooper = sum(all_coop_rate) / float(len(all_coop_rate))
-    total_marks = average_express + average_pro + average_general + average_interest + average_cooper
-    all_assessment.update(average_pro=average_pro,
-                          average_general=average_general,
-                          average_cooper=average_cooper,
-                          average_expression=average_express,
-                          average_interesting=average_interest)
-    person.total_marks = total_marks
-    person.save()
+    try:
+        average_express = sum(all_express) / float(len(all_express))
+        average_interest = sum(all_interest) / float(len(all_interest))
+        average_pro = sum(all_pro_rate) / float(len(all_pro_rate))
+        average_general = sum(all_general_rate) / float(len(all_general_rate))
+        average_cooper = sum(all_coop_rate) / float(len(all_coop_rate))
+        total_marks = average_express + average_pro + average_general + average_interest + average_cooper
+        all_assessment.update(average_pro=average_pro,
+                              average_general=average_general,
+                              average_cooper=average_cooper,
+                              average_expression=average_express,
+                              average_interesting=average_interest)
+        person.total_marks = total_marks
+        person.save()
+    except ZeroDivisionError:
+        return
 
 
 def save_a_person_to_database(request):

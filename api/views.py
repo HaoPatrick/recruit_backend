@@ -114,7 +114,6 @@ def manage_each_person(request):
             return HttpResponse('Errrrrrrrrrrrrrrrrrror 110')
         except IndexError:
             return HttpResponse('Error 233')
-        # TODO: simple validate
         if if_star == 1:
             person.star_amount += 1
         elif if_star == 2:
@@ -196,7 +195,6 @@ def delete_item(request):
             else:
                 student.deleted = True
             student.save()
-        # TODO: No test here !!!
         if request.POST.get('assessment'):
             try:
                 recover_signal = request.POST['recover']
