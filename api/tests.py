@@ -210,7 +210,7 @@ class DepartmentManage(TestCase):
             'name': 'tech',
             'cookie': '123'
         })
-        json_response = json.loads(response.content.decode('utf-8'))[0]['fields']
+        json_response = json.loads(response.content.decode('utf-8'))[0]
         self.assertEqual(json_response['name'], 'tech')
         self.assertEqual(json_response['desc'], 'abc')
         self.assertEqual(json_response['question'], 'haha')
@@ -246,8 +246,8 @@ class DepartmentManage(TestCase):
             'cookie': '123'
         })
         json_response = json.loads(response.content.decode('utf-8'))
-        self.assertEqual(json_response[0]['fields']['nick_name'], 'tech')
-        self.assertEqual(json_response[1]['fields']['question'], 'aaa')
+        self.assertEqual(json_response[0]['nick_name'], 'tech')
+        self.assertEqual(json_response[1]['question'], 'aaa')
 
     def test_delete_department(self):
         AuthCookie.objects.create(cookie_value='123')
@@ -266,11 +266,11 @@ class DepartmentManage(TestCase):
 
 
 def initialize_database():
-    PersonInfo.objects.create(name='name', student_id='123', gender='3', deleted=True)
-    temp_person = PersonInfo.objects.create(name='name2', student_id='234', gender='2', deleted=False)
-    Department.objects.create(nick_name='123', name='abc', deleted=True)
-    Department.objects.create(nick_name='233', name='a2c', deleted=False)
     AuthCookie.objects.create(cookie_value='123')
+    PersonInfo.objects.create(name='name', student_id='123', gender='3', deleted=True)
+    Department.objects.create(nick_name='123', name='abc', deleted=True)
+    temp_depart = Department.objects.create(nick_name='233', name='a2c', deleted=False)
+    temp_person = temp_depart.personinfo_set.create(name='name2', student_id='234', gender='2', deleted=False)
     temp_person.assessment_set.create(interviewer_name='aha', profession_rate=5, comment='123',
                                       cooperation_rate=3, general_rate=4)
 
@@ -316,6 +316,7 @@ class AssessmentTest(TestCase):
             'inter': 'hao',
             'profession': '10',
             'cooper': '8',
+            'depart': 'a2c',
             'general': '10',
             'comment': '123',
             'express': '123',

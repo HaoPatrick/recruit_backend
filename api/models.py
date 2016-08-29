@@ -9,11 +9,18 @@ class Department(models.Model):
     deleted = models.BooleanField(default=False)
     created_time = models.DateTimeField(auto_now_add=True)
 
+    average_pro = models.FloatField(default=5.0)
+    average_cooper = models.FloatField(default=5.0)
+    average_interesting = models.FloatField(default=5.0)
+    average_general = models.FloatField(default=5.0)
+    average_expression = models.FloatField(default=5.0)
+
+    assess_count = models.IntegerField(default=0)
+
     def __str__(self):
         return self.nick_name
 
 
-# TODO:foreignkey add to department.
 class PersonInfo(models.Model):
     name = models.TextField(max_length=100)
     student_id = models.TextField(max_length=100)

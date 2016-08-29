@@ -3,6 +3,7 @@ from django.core import serializers
 from django.db.models import Q
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils.datastructures import MultiValueDictKeyError
+import json
 
 
 # TODO: Warning, no test below!!!
@@ -154,3 +155,54 @@ def save_a_person_to_database(request):
         )
         person.department.add(department_one, department_two)
     return True
+
+
+def get_stats_via_department():
+    all_department = Department.objects.all()
+    stats_list = []
+    for depart in all_department:
+        stats_list.append(
+            {'name': depart.name,
+             'count': depart.personinfo_set.count()})
+    json_response = json.dumps(stats_list)
+    return json_response
+
+
+def get_department_info(request):
+    try:
+        if request.GET.get('name'):
+            name = request.GET['name']
+            target_depart = Department.objects.filter(name=name).filter(deleted=False)
+        else:
+            target_depart = Department.objects.all().filter(deleted=False)
+    except ObjectDoesNotExist:
+        return False
+    result_list = []
+    for depart in target_depart:
+        result_list.append({
+            'name': depart.name,
+            'nick_name': depart.nick_name,
+            'desc': depart.desc,
+            'question': depart.question,
+            'deleted': False,
+            'count': depart.personinfo_set.count()
+        })
+    json_response = json.dumps(result_list)
+    return json_response
+
+
+# TODO: Temp filter, correct version was commented
+def get_ranked_person_via_department(request):
+    try:
+        department_name = request.GET['depart']
+        department = Department.objects.get(name=department_name)
+    except MultiValueDictKeyError:
+        return False
+    except ObjectDoesNotExist:
+        return False
+    all_person = PersonInfo.objects.filter(
+        Q(inclination_one=department_name) | Q(inclination_two=department_name)
+    ).order_by('-total_marks')
+    # all_person = department.personinfo_set.all().order_by('-total_marks')
+    json_response = serializers.serialize('json', all_person)
+    return json_response
