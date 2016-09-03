@@ -27,6 +27,7 @@ class NewPostTest(TestCase):
             'inclination_two': '人力资源部门',
             'share_work': 'lkjasdf',
             'photo': 'photo',
+            'mail': 'hao@bao.com',
             'user_agent': 'lkjas',
             'time_spend': '123456'
         })
@@ -102,6 +103,7 @@ class NewPostTest(TestCase):
             'inclination_two': '人力资源部门',
             'share_work': 'nihao',
             'photo': 'photo',
+            'mail':'hao@foo.com',
             'user_agent': 'lkjas',
             'time_spend': '123456'
         })
@@ -163,6 +165,7 @@ class RetrievePersonInfo(TestCase):
             'inclination_two': '人力资源部门',
             'share_work': 'lkjasdf',
             'photo': 'photo',
+            'mail':'foo@bar.com',
             'user_agent': 'lkjas',
             'time_spend': '123456'
         })

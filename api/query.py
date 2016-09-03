@@ -95,7 +95,7 @@ def save_a_person_to_database(request):
         gender = request.POST['gender']
         major = request.POST['major']
         grade = request.POST['grade']
-        phone_number = request.POST['phone_number']
+        phone_number = str(int(request.POST['phone_number']))
         self_intro = request.POST['self_intro']
         question_one = request.POST['question_one']
         question_two = request.POST['question_two']
@@ -105,6 +105,9 @@ def save_a_person_to_database(request):
         department_two = Department.objects.get(name=inclination_two)
         share_work = request.POST['share_work']
         photo = request.POST['photo']
+        mail_address = request.POST['mail']
+        if not validate_email_address(mail_address):
+            raise EmailError('Invalid Email')
         user_agent = request.POST['user_agent']
         time_spend = int(int(request.POST['time_spend']) / 1000)
     except MultiValueDictKeyError:
@@ -112,6 +115,8 @@ def save_a_person_to_database(request):
     except ObjectDoesNotExist:
         return False
     except ValueError:
+        return False
+    except EmailError:
         return False
     # TODO: Validate the post data
     time_min = int(time_spend / 60)
@@ -126,6 +131,7 @@ def save_a_person_to_database(request):
         person.phone_number = phone_number
         person.self_intro = self_intro
         person.question_one = question_one
+        person.mail_address = mail_address
         if person.inclination_one != inclination_one:
             prv_depart = person.inclination_one
             person.department.get(name=prv_depart).delete()
@@ -145,6 +151,7 @@ def save_a_person_to_database(request):
             gender=gender,
             major=major,
             grade=grade,
+            mail_address=mail_address,
             phone_number=phone_number,
             self_intro=self_intro,
             question_one=question_one,
@@ -158,6 +165,12 @@ def save_a_person_to_database(request):
             is_spam=str(is_spam)
         )
         person.department.add(department_one, department_two)
+    from django.conf import settings
+    if not settings.TESTING:
+        send_email(mail_address, name, student_id, phone_number, inclination_one, inclination_two)
+        send_sms(phone_number, name)
+    else:
+        print('test so skip the email')
     return True
 
 
@@ -210,3 +223,53 @@ def get_ranked_person_via_department(request):
     # all_person = department.personinfo_set.all().order_by('-total_marks')
     json_response = serializers.serialize('json', all_person)
     return json_response
+
+
+def validate_email_address(email):
+    from email.utils import parseaddr
+    return '@' in parseaddr(email)[1]
+
+
+def send_sms(phone_number, name):
+    import requests
+    url = 'https://sms.yunpian.com/v1/sms/send.json'
+    api_key = 'd0d4d333ccb057612c0325521b9403ed'
+    msg = '【求是潮】尊敬的' + name + '，感谢您报名求是潮。如需修改报名信息，可重新提交报名表。'
+    params = {'apikey': api_key,
+              'mobile': phone_number,
+              'text': msg}
+    requests.post(url, files={}, data=params)
+
+
+def send_email(mail_address, name, stu_id, phone_number, inc_one, inc_two):
+    import requests
+    import random
+    import os.path
+    base = os.path.dirname(os.path.abspath(__file__))
+    with open(os.path.join(base, 'info.txt'), 'r') as fp:
+        lines = fp.readlines()
+        api_user = [lines[2][:-1], lines[3][:-1]]
+        api_key = lines[4]
+    message = "<p>亲爱的" + name + ":</p>"
+    message += "<p>感谢您报名求是潮，请核对您的重要信息，如有修改，请重新提交报名表（http://joinus.zjuqsc.com)</p>"
+    message += "<p>您的学号：" + stu_id + "<br>您的手机号：" + phone_number + "<br>您的第一志愿：" + inc_one + "<br>您的第二志愿：" + inc_two + "<br><br>面试时间我们将通过短信的方式通知您，再次感谢报名求是潮！"
+    url = "http://sendcloud.sohu.com/webapi/mail.send.json"
+    params = {"api_user": api_user[random.randrange(2)],
+              "api_key": api_key,
+              "from": "tech@zjuqsc.com",
+              "to": mail_address,
+              "fromname": "求是潮",
+              "subject": "感谢报名求是潮",
+              "html": message,
+              "resp_email_id": "true",
+              }
+    r = requests.post(url, files={}, data=params)
+    print(r.content.decode('utf-8'))
+
+
+class EmailError(Exception):
+    def __init__(self, value):
+        self.value = value
+
+    def __str__(self):
+        return repr(self.value)

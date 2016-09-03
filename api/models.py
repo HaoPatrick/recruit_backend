@@ -39,6 +39,7 @@ class PersonInfo(models.Model):
     share_work = models.TextField(max_length=100)
     photo = models.TextField(max_length=100)
     date_time = models.DateTimeField(auto_now_add=True)
+    mail_address = models.TextField(default='')
 
     user_agent = models.TextField(max_length=1000, default='not given')
     time_spend = models.TextField(max_length=100, default='not given')

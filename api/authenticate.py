@@ -8,7 +8,7 @@ def user_and_password_auth(user, password):
     base = os.path.dirname(os.path.abspath(__file__))
     with open(os.path.join(base, 'info.txt'), 'r') as f:
         correct_user = f.readline()[:-1]
-        correct_pass = f.readline()
+        correct_pass = f.readline()[:-1]
     if user == correct_user and password == correct_pass:
         return True
     else:
@@ -61,3 +61,4 @@ class CookieError(Exception):
 
     def __str__(self):
         return repr(self.value)
+

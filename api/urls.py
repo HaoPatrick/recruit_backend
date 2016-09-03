@@ -1,4 +1,4 @@
-from django.conf.urls import patterns, url
+from django.conf.urls import url
 import api.views
 
 urlpatterns = [
@@ -11,5 +11,5 @@ urlpatterns = [
     url(r'^department', api.views.department_info, name='department'),
     url(r'^delete', api.views.delete_item, name='delete'),
     url(r'^recycle', api.views.recycle, name='recycle'),
-    url(r'^interview', api.views.on_interview, name='interview')
+    url(r'^interview', api.views.on_interview, name='interview'),
 ]
