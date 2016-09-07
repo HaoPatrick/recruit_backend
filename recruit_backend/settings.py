@@ -23,9 +23,9 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = '9bj8od(fa0lxqaibnh16k2f^ybw4ov_7qv3asc^!kk0^%d+%c1'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 TESTING = len(sys.argv) > 1 and sys.argv[1] == 'test'
 
@@ -40,7 +40,6 @@ INSTALLED_APPS = [
     'api',
     'corsheaders'
 ]
-
 MIDDLEWARE_CLASSES = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',

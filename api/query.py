@@ -123,48 +123,26 @@ def save_a_person_to_database(request):
     time_sec = time_spend - time_min * 60
     time_spend = str(time_min) + ' min ' + str(time_sec) + ' s'
     is_spam = False
-    try:
-        person = PersonInfo.objects.get(student_id=student_id)
-        person.name = name
-        person.gender = gender
-        person.major = major
-        person.phone_number = phone_number
-        person.self_intro = self_intro
-        person.question_one = question_one
-        person.mail_address = mail_address
-        if person.inclination_one != inclination_one:
-            prv_depart = person.inclination_one
-            person.department.get(name=prv_depart).delete()
-            person.department.add(department_one)
-        if person.inclination_two != inclination_two:
-            prv_depart = person.inclination_two
-            person.department.get(name=prv_depart).delete()
-            person.department.add(department_two)
-        person.photo = photo
-        person.share_work = share_work
-        person.time_spend += time_spend
-        person.save()
-    except ObjectDoesNotExist:
-        person = PersonInfo.objects.create(
-            name=name,
-            student_id=student_id,
-            gender=gender,
-            major=major,
-            grade=grade,
-            mail_address=mail_address,
-            phone_number=phone_number,
-            self_intro=self_intro,
-            question_one=question_one,
-            question_two=question_two,
-            inclination_one=inclination_one,
-            inclination_two=inclination_two,
-            share_work=share_work,
-            photo=photo,
-            user_agent=user_agent,
-            time_spend=time_spend,
-            is_spam=str(is_spam)
-        )
-        person.department.add(department_one, department_two)
+    person = PersonInfo.objects.create(
+        name=name,
+        student_id=student_id,
+        gender=gender,
+        major=major,
+        grade=grade,
+        mail_address=mail_address,
+        phone_number=phone_number,
+        self_intro=self_intro,
+        question_one=question_one,
+        question_two=question_two,
+        inclination_one=inclination_one,
+        inclination_two=inclination_two,
+        share_work=share_work,
+        photo=photo,
+        user_agent=user_agent,
+        time_spend=time_spend,
+        is_spam=str(is_spam)
+    )
+    person.department.add(department_one, department_two)
     from django.conf import settings
     if not settings.TESTING:
         send_email(mail_address, name, student_id, phone_number, inclination_one, inclination_two)
@@ -208,7 +186,7 @@ def get_department_info(request):
     return json_response
 
 
-# TODO: Temp filter, correct version was commented
+# TODO: Temporary filter, correct version was commented
 def get_ranked_person_via_department(request):
     try:
         department_name = request.GET['depart']
@@ -234,7 +212,7 @@ def send_sms(phone_number, name):
     import requests
     url = 'https://sms.yunpian.com/v1/sms/send.json'
     api_key = 'd0d4d333ccb057612c0325521b9403ed'
-    msg = '【求是潮】尊敬的' + name + '，感谢您报名求是潮。如需修改报名信息，可重新提交报名表。'
+    msg = '【求是潮】' + name + '同学您好，您的纳新报名表已上传。如需修改，可重新提交。我们将在之后通过短信与您联系，请留意。期待您的加入！'
     params = {'apikey': api_key,
               'mobile': phone_number,
               'text': msg}
@@ -250,9 +228,11 @@ def send_email(mail_address, name, stu_id, phone_number, inc_one, inc_two):
         lines = fp.readlines()
         api_user = [lines[2][:-1], lines[3][:-1]]
         api_key = lines[4]
-    message = "<p>亲爱的" + name + ":</p>"
-    message += "<p>感谢您报名求是潮，请核对您的重要信息，如有修改，请重新提交报名表（http://joinus.zjuqsc.com)</p>"
-    message += "<p>您的学号：" + stu_id + "<br>您的手机号：" + phone_number + "<br>您的第一志愿：" + inc_one + "<br>您的第二志愿：" + inc_two + "<br><br>面试时间我们将通过短信的方式通知您，再次感谢报名求是潮！"
+    message = "<p>亲爱的" + name + "您好:</p>"
+    message += "<p>我们已经收到了您的报名表，请核对下列信息是否准确，重新提交报名表可修改信息（http://joinus.zjuqsc.com)</p>"
+    message += "<p>您的学号：" + stu_id + "<br>您的手机号：" + phone_number + \
+               "<br>您的第一志愿：" + inc_one + "<br>您的第二志愿：" + inc_two + \
+               "<br><br>我们将在之后通过短信通知您具体的面试信息，敬请留意。感谢您报名2016求是潮秋季纳新，期待您的加入！"
     url = "http://sendcloud.sohu.com/webapi/mail.send.json"
     params = {"api_user": api_user[random.randrange(2)],
               "api_key": api_key,

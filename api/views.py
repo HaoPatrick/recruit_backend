@@ -72,7 +72,7 @@ def retrieve_person(request):
                 page_number = int(page_number) - 1
             except ValueError:
                 return HttpResponse('Erroooooooooor 110')
-            all_person = PersonInfo.objects.all()[page_number * 20:page_number + 20]
+            all_person = PersonInfo.objects.all().exclude(deleted=True)[page_number * 20:page_number + 20]
         else:
             try:
                 if request.GET.get('start'):
@@ -82,14 +82,31 @@ def retrieve_person(request):
             except ValueError:
                 return HttpResponse('Erroooooooooor 110')
             if query_end > query_start >= 0:
-                all_person = PersonInfo.objects.all()[query_start:query_end]
+                all_person = PersonInfo.objects.all().exclude(deleted=True)[query_start:query_end]
             elif query_start != 0 and query_end == 0:
-                all_person = PersonInfo.objects.all()[query_start:]
+                all_person = PersonInfo.objects.all().exclude(deleted=True)[query_start:]
             elif query_end == 0 and query_start == 0:
-                all_person = PersonInfo.objects.all()
+                all_person = PersonInfo.objects.all().exclude(deleted=True)
             else:
                 return HttpResponse('Erroooooooooor 110')
-        json_person = serializers.serialize('json', all_person.exclude(deleted=True))
+        list_response = []
+        for index, person in enumerate(all_person):
+            if index and person.name == all_person[index - 1].name:
+                continue
+            list_response.append({
+                'pk': person.pk,
+                'model': person._meta.model_name,
+                'fields': {
+                    'name': person.name,
+                    'gender': person.gender,
+                    'student_id': person.student_id,
+                    'inclination_one': person.inclination_one,
+                    'inclination_two': person.inclination_two
+                }
+            })
+        list_response.append({'total': PersonInfo.objects.filter(deleted=False).count()})
+        json_person = json.dumps(list_response)
+        # json_person = serializers.serialize('json', list_response)
         return HttpResponse(json_person, content_type='application/json')
 
 
@@ -109,15 +126,17 @@ def manage_each_person(request):
                 inclination_two_time = request.POST['inc_two']
             if request.POST.get('star'):
                 if_star = int(request.POST['star'])
-            person = PersonInfo.objects.filter(student_id=student_id)[0]
+            person = PersonInfo.objects.filter(student_id=student_id)
         except MultiValueDictKeyError:
             return HttpResponse('Errrrrrrrrrrrrrrrrrror 110')
         except IndexError:
             return HttpResponse('Error 233')
         if if_star == 1:
-            person.star_amount += 1
+            for each_person in person:
+                each_person.star_amount += 1
         elif if_star == 2:
-            person.star_amount -= 1
+            for each_person in person:
+                each_person.star_amount -= 1
         if inclination_one_time:
             person.inc_one_time = inclination_one_time
         if inclination_two_time:
@@ -187,14 +206,17 @@ def delete_item(request):
             student_id = request.POST['student_id']
             recover_signal = request.POST['recover']
             try:
-                student = PersonInfo.objects.get(student_id=student_id)
+                student = PersonInfo.objects.filter(student_id=student_id)
             except ObjectDoesNotExist:
                 return HttpResponse('Does not exist')
             if recover_signal == '1':
-                student.deleted = False
+                for stu in student:
+                    stu.deleted = False
+                    stu.save()
             else:
-                student.deleted = True
-            student.save()
+                for stu in student:
+                    stu.deleted = True
+                    stu.save()
         if request.POST.get('assessment'):
             try:
                 recover_signal = request.POST['recover']
