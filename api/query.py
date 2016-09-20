@@ -13,11 +13,11 @@ def detail_person_exclude_query(request):
         department = request.GET['department']
         total_person = total_person.filter(Q(inclination_one=department) | Q(inclination_two=department))
     if request.GET.get('student_id'):
-        total_person = total_person.filter(student_id=request.GET['student_id'])
+        total_person = total_person.filter(student_id__contains=request.GET['student_id'])
     if request.GET.get('name'):
-        total_person = total_person.filter(name=request.GET['name'])
+        total_person = total_person.filter(name__contains=request.GET['name'])
     if request.GET.get('phone_number'):
-        total_person = total_person.filter(phone_number=request.GET['phone_number'])
+        total_person = total_person.filter(phone_number__contains=request.GET['phone_number'])
     if request.GET.get('gender'):
         total_person = total_person.filter(gender=request.GET['gender'])
     if request.GET.get('grade'):
@@ -34,7 +34,27 @@ def detail_person_exclude_query(request):
         total_person = total_person.filter(Q(user_agent__contains='MSIE') | Q(user_agent='360SE'))
     if request.GET.get('edge'):
         total_person = total_person.filter(user_agent__contains='Edge')
-    json_person = serializers.serialize('json', total_person)
+    list_response = []
+    dict_response = []
+    for index, person in enumerate(total_person):
+        if person.student_id in dict_response:
+            continue
+        else:
+            dict_response.append(person.student_id)
+        list_response.append({
+            'pk': person.pk,
+            'model': person._meta.model_name,
+            'fields': {
+                'name': person.name,
+                'gender': person.gender,
+                'student_id': person.student_id,
+                'inclination_one': person.inclination_one,
+                'inclination_two': person.inclination_two,
+                'major': person.major,
+                'phone_number': person.phone_number
+            }
+        })
+    json_person = json.dumps(list_response)
     return json_person
 
 
@@ -57,9 +77,27 @@ def detail_person_combine_query(request):
     if request.GET.get('phone_number'):
         query_by_phone = list(PersonInfo.objects.filter(
             phone_number=request.GET['phone_number']).exclude(deleted=True))
-    unique_set = set(query_by_id + query_by_phone + query_by_name + query_by_department)
+    unique_set = list(set(query_by_id + query_by_phone + query_by_name + query_by_department))
     json_person = serializers.serialize('json', unique_set)
     return json_person
+
+
+def print_specific_department(request):
+    try:
+        department = request.GET['department']
+    except MultiValueDictKeyError:
+        return False
+    total_person = PersonInfo.objects.exclude(deleted=True).filter(
+        Q(inclination_one=department) | Q(inclination_two=department))
+    if request.GET.get('count'):
+        print_count = int(request.GET['count'])
+        total_person = total_person.order_by('-pk')[:print_count]
+    persons = []
+    for person in total_person:
+        persons.append(person)
+    persons.reverse()
+    json_response = serializers.serialize('json', persons)
+    return json_response
 
 
 def recalculate_average_marks(person):
@@ -119,6 +157,11 @@ def save_a_person_to_database(request):
     except EmailError:
         return False
     # TODO: Validate the post data
+    # purify html
+    self_intro = self_intro.replace('(', 'a').replace(')', 'b').replace('on', 'hhh')
+    question_one = question_one.replace('(', 'a').replace(')', 'b').replace('on', 'hhh')
+    question_two = question_two.replace('(', 'a').replace(')', 'b').replace('on', 'hhh')
+
     time_min = int(time_spend / 60)
     time_sec = time_spend - time_min * 60
     time_spend = str(time_min) + ' min ' + str(time_sec) + ' s'
@@ -180,7 +223,7 @@ def get_department_info(request):
             'desc': depart.desc,
             'question': depart.question,
             'deleted': False,
-            'count': depart.personinfo_set.count()
+            'count': depart.personinfo_set.values_list('student_id', flat=True).distinct().count()
         })
     json_response = json.dumps(result_list)
     return json_response

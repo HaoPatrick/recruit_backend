@@ -5,6 +5,7 @@ from api.authenticate import user_and_password_auth
 from api.authenticate import generate_cookie
 from api.authenticate import login_required
 from api.query import *
+from api.statistic import *
 import json
 
 
@@ -53,6 +54,8 @@ def get_detailed_person(request):
     if request.method == 'GET':
         if request.GET.get('exclude'):
             json_person = detail_person_exclude_query(request)
+        elif request.GET.get('print'):
+            json_person = print_specific_department(request)
         else:
             json_person = detail_person_combine_query(request)
         return HttpResponse(json_person, content_type='application/json')
@@ -66,13 +69,34 @@ def retrieve_person(request):
     if request.method == 'GET':
         query_start = 0
         query_end = 0
+        all_person = PersonInfo.objects.all().exclude(deleted=True)
+        list_response = []
+        dict_response = []
+        for index, person in enumerate(all_person):
+            if person.student_id in dict_response:
+                continue
+            else:
+                dict_response.append(person.student_id)
+            list_response.append({
+                'pk': person.pk,
+                'model': person._meta.model_name,
+                'fields': {
+                    'name': person.name,
+                    'gender': person.gender,
+                    'student_id': person.student_id,
+                    'inclination_one': person.inclination_one,
+                    'inclination_two': person.inclination_two,
+                    'major': person.major,
+                    'phone_number': person.phone_number
+                }
+            })
         if request.GET.get('page'):
             page_number = request.GET['page']
             try:
                 page_number = int(page_number) - 1
             except ValueError:
                 return HttpResponse('Erroooooooooor 110')
-            all_person = PersonInfo.objects.all().exclude(deleted=True)[page_number * 20:page_number + 20]
+            json_response = list_response[page_number * 20:page_number + 20]
         else:
             try:
                 if request.GET.get('start'):
@@ -82,30 +106,15 @@ def retrieve_person(request):
             except ValueError:
                 return HttpResponse('Erroooooooooor 110')
             if query_end > query_start >= 0:
-                all_person = PersonInfo.objects.all().exclude(deleted=True)[query_start:query_end]
+                json_response = list_response[query_start:query_end]
             elif query_start != 0 and query_end == 0:
-                all_person = PersonInfo.objects.all().exclude(deleted=True)[query_start:]
+                json_response = list_response[query_start:]
             elif query_end == 0 and query_start == 0:
-                all_person = PersonInfo.objects.all().exclude(deleted=True)
+                json_response = list_response
             else:
                 return HttpResponse('Erroooooooooor 110')
-        list_response = []
-        for index, person in enumerate(all_person):
-            if index and person.name == all_person[index - 1].name:
-                continue
-            list_response.append({
-                'pk': person.pk,
-                'model': person._meta.model_name,
-                'fields': {
-                    'name': person.name,
-                    'gender': person.gender,
-                    'student_id': person.student_id,
-                    'inclination_one': person.inclination_one,
-                    'inclination_two': person.inclination_two
-                }
-            })
-        list_response.append({'total': PersonInfo.objects.filter(deleted=False).count()})
-        json_person = json.dumps(list_response)
+        json_response.append({'total': len(list_response)})
+        json_person = json.dumps(json_response)
         # json_person = serializers.serialize('json', list_response)
         return HttpResponse(json_person, content_type='application/json')
 
@@ -138,10 +147,13 @@ def manage_each_person(request):
             for each_person in person:
                 each_person.star_amount -= 1
         if inclination_one_time:
-            person.inc_one_time = inclination_one_time
+            for each_person in person:
+                each_person.inc_one_time = inclination_one_time
         if inclination_two_time:
-            person.inc_two_time = inclination_two_time
-        person.save()
+            for each_person in person:
+                each_person.inc_one_time = inclination_one_time
+        for each_person in person:
+            each_person.save()
         return HttpResponse('OK')
 
     return HttpResponse('Oh my bad guy')
@@ -273,9 +285,11 @@ def on_interview(request):
             return HttpResponse('Error value')
         try:
             department = Department.objects.get(name=department_name)
-            person = department.personinfo_set.get(student_id=student_id)
+            person = department.personinfo_set.filter(student_id=student_id)[0]
         except ObjectDoesNotExist:
             return HttpResponse('Error 233')
+        except IndexError:
+            return HttpResponse('当前部门也许不对噢')
         person.assessment_set.create(
             interviewer_name=interviewer_name,
             profession_rate=profession_rate,
@@ -316,7 +330,7 @@ def on_interview(request):
         if request.GET.get('student_id'):
             try:
                 student_id = request.GET['student_id']
-                student = PersonInfo.objects.get(student_id=student_id)
+                student = PersonInfo.objects.filter(student_id=student_id)[0]
             except MultiValueDictKeyError:
                 return HttpResponse('Error 110')
             except ObjectDoesNotExist:
@@ -332,3 +346,9 @@ def on_interview(request):
             return HttpResponse(json_response, content_type='application/json')
         else:
             return HttpResponse('Error 110')
+
+
+def get_stat(request):
+    response = get_general_stat()
+    json_response = json.dumps(response)
+    return HttpResponse(json_response, content_type='application/json')
