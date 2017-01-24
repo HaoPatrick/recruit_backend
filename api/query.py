@@ -23,7 +23,7 @@ def detail_person_exclude_query(request):
     if request.GET.get('grade'):
         total_person = total_person.filter(grade=request.GET['grade'])
     if request.GET.get('linux'):
-        total_person = total_person.filter(user_agent__contains='Linux')
+        total_person = total_person.filter(user_agent__contains='Linux').exclude(user_agent__contains='Android')
     if request.GET.get('chrome'):
         total_person = total_person.filter(user_agent__contains='Chrome')
     if request.GET.get('windows'):
