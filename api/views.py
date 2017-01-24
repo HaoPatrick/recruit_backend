@@ -113,7 +113,7 @@ def retrieve_person(request):
                 json_response = list_response
             else:
                 return HttpResponse('Erroooooooooor 110')
-        json_response.append({'total': len(list_response)})
+        # json_response.append({'total': len(list_response)})
         json_person = json.dumps(json_response)
         # json_person = serializers.serialize('json', list_response)
         return HttpResponse(json_person, content_type='application/json')

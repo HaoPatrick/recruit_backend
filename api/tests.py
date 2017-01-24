@@ -45,7 +45,7 @@ class NewPostTest(TestCase):
         response = c.get('/api/person', {
             'cookie': '123',
         })
-        self.assertEqual(response.content, b'[{"total": 0}]')
+        self.assertEqual(response.content, b'[]')
 
     def test_wrong_post_return_error(self):
         c = Client()
@@ -273,8 +273,8 @@ class DepartmentManage(TestCase):
 
 
 def initialize_database():
-    Department.objects.create(name='技术研发中心')
-    Department.objects.create(name='人力资源部门')
+    # Department.objects.create(name='技术研发中心')
+    # Department.objects.create(name='人力资源部门')
     AuthCookie.objects.create(cookie_value='123')
     PersonInfo.objects.create(name='hao', student_id='2255', gender='3', deleted=True)
     Department.objects.create(nick_name='123', name='abc', deleted=True)

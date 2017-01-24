@@ -127,6 +127,10 @@ def recalculate_average_marks(person):
 
 
 def save_a_person_to_database(request):
+    """
+    If we already have a department per the inclination
+    We save it. If not, also OK
+    """
     try:
         name = request.POST['name']
         student_id = request.POST['student_id']
@@ -139,15 +143,13 @@ def save_a_person_to_database(request):
         question_two = request.POST['question_two']
         inclination_one = request.POST['inclination_one']
         inclination_two = request.POST['inclination_two']
-        department_one = Department.objects.get(name=inclination_one)
-        department_two = Department.objects.get(name=inclination_two)
         share_work = request.POST['share_work']
         photo = request.POST['photo']
         mail_address = request.POST['mail']
         if not validate_email_address(mail_address):
             raise EmailError('Invalid Email')
         user_agent = request.POST['user_agent']
-        time_spend = int(int(request.POST['time_spend']) / 1000)
+        time_spend = request.POST['time_spend']
     except MultiValueDictKeyError:
         return False
     except ObjectDoesNotExist:
@@ -156,15 +158,17 @@ def save_a_person_to_database(request):
         return False
     except EmailError:
         return False
+    try:
+        department_one = Department.objects.get(name=inclination_one)
+        department_two = Department.objects.get(name=inclination_two)
+    except ObjectDoesNotExist:
+        department_one = department_two = False
     # TODO: Validate the post data
     # purify html
     self_intro = self_intro.replace('(', 'a').replace(')', 'b').replace('on', 'hhh')
     question_one = question_one.replace('(', 'a').replace(')', 'b').replace('on', 'hhh')
     question_two = question_two.replace('(', 'a').replace(')', 'b').replace('on', 'hhh')
 
-    time_min = int(time_spend / 60)
-    time_sec = time_spend - time_min * 60
-    time_spend = str(time_min) + ' min ' + str(time_sec) + ' s'
     is_spam = False
     person = PersonInfo.objects.create(
         name=name,
@@ -185,11 +189,13 @@ def save_a_person_to_database(request):
         time_spend=time_spend,
         is_spam=str(is_spam)
     )
-    person.department.add(department_one, department_two)
+    if department_one:
+        person.department.add(department_one, department_two)
     from django.conf import settings
     if not settings.TESTING:
-        send_email(mail_address, name, student_id, phone_number, inclination_one, inclination_two)
-        send_sms(phone_number, name)
+        pass
+        # send_email(mail_address, name, student_id, phone_number, inclination_one, inclination_two)
+        # send_sms(phone_number, name)
     else:
         print('test so skip the email')
     return True
