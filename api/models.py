@@ -9,14 +9,6 @@ class Department(models.Model):
     deleted = models.BooleanField(default=False)
     created_time = models.DateTimeField(auto_now_add=True)
 
-    average_pro = models.FloatField(default=5.0)
-    average_cooper = models.FloatField(default=5.0)
-    average_interesting = models.FloatField(default=5.0)
-    average_general = models.FloatField(default=5.0)
-    average_expression = models.FloatField(default=5.0)
-
-    assess_count = models.IntegerField(default=0)
-
     def __str__(self):
         return self.nick_name
 
@@ -53,30 +45,6 @@ class PersonInfo(models.Model):
 
     def __str__(self):
         return self.name
-
-
-class Assessment(models.Model):
-    person_name = models.ForeignKey(PersonInfo, on_delete=models.CASCADE)
-    interviewer_name = models.TextField(max_length=100)
-    date_time = models.DateTimeField(auto_now_add=True)
-
-    profession_rate = models.IntegerField(default=5)
-    cooperation_rate = models.IntegerField(default=5)
-    general_rate = models.IntegerField(default=5)
-    expression_ability = models.IntegerField(default=5)
-    interesting = models.IntegerField(default=5)
-
-    average_pro = models.FloatField(default=5.0)
-    average_cooper = models.FloatField(default=5.0)
-    average_general = models.FloatField(default=5.0)
-    average_interesting = models.FloatField(default=5.0)
-    average_expression = models.FloatField(default=5.0)
-    comment = models.TextField(max_length=1000)
-
-    deleted = models.BooleanField(default=False)
-
-    def __str__(self):
-        return self.person_name
 
 
 class AuthCookie(models.Model):

@@ -1,5 +1,5 @@
 from django.http import HttpResponse
-from api.models import Assessment, AuthCookie
+from api.models import AuthCookie
 from django.views.decorators.csrf import csrf_exempt
 from api.authenticate import user_and_password_auth
 from api.authenticate import generate_cookie
@@ -258,94 +258,10 @@ def recycle(request):
     if request.method == 'GET':
         person = list(PersonInfo.objects.filter(deleted=True))
         department = list(Department.objects.filter(deleted=True))
-        assessment = list(Assessment.objects.filter(deleted=True))
-        return_list = set(person + department + assessment)
+        # assessment = list(Assessment.objects.filter(deleted=True))
+        return_list = set(person + department)
         return_list = serializers.serialize('json', return_list)
         return HttpResponse(return_list, content_type='application/json')
-
-
-@csrf_exempt
-def on_interview(request):
-    if not login_required(request):
-        return HttpResponse('Authenticate error')
-    if request.method == 'POST':
-        try:
-            student_id = request.POST['stu_id']
-            interviewer_name = request.POST['inter']
-            comment = request.POST['comment']
-            profession_rate = int(request.POST['profession'])
-            cooperation_rate = int(request.POST['cooper'])
-            general_rate = int(request.POST['general'])
-            department_name = request.POST['depart']
-            expression_ability = int(request.POST['express'])
-            interesting = int(request.POST['interesting'])
-        except MultiValueDictKeyError:
-            return HttpResponse('Error 110')
-        except ValueError:
-            return HttpResponse('Error value')
-        try:
-            department = Department.objects.get(name=department_name)
-            person = department.personinfo_set.filter(student_id=student_id)[0]
-        except ObjectDoesNotExist:
-            return HttpResponse('Error 233')
-        except IndexError:
-            return HttpResponse('当前部门也许不对噢')
-        person.assessment_set.create(
-            interviewer_name=interviewer_name,
-            profession_rate=profession_rate,
-            cooperation_rate=cooperation_rate,
-            general_rate=general_rate,
-            comment=comment,
-            expression_ability=expression_ability,
-            interesting=interesting
-        )
-        department.assess_count += 1
-        department.save()
-        # TODO: Performance improvement
-        total_assessment_count = Assessment.objects.filter(deleted=False).count()
-        if not total_assessment_count % 30:
-            all_assessment = Assessment.objects.all().filter(deleted=False)
-            all_pro = [ass.profession_rate for ass in all_assessment]
-            all_cooper = [ass.cooperation_rate for ass in all_assessment]
-            all_general = [ass.general_rate for ass in all_assessment]
-            all_express = [ass.expression_ability for ass in all_assessment]
-            all_interesting = [ass.interesting for ass in all_assessment]
-
-            average_pro = sum(all_pro) / float(len(all_pro))
-            average_cooper = sum(all_cooper) / float(len(all_cooper))
-            average_general = sum(all_general) / float(len(all_general))
-            average_express = sum(all_express) / float(len(all_express))
-            average_interesting = sum(all_interesting) / float(len(all_interesting))
-
-            all_department = Department.objects.all().filter(deleted=False)
-            all_department.update(average_pro=average_pro,
-                                  average_cooper=average_cooper,
-                                  average_interesting=average_interesting,
-                                  average_general=average_general,
-                                  average_expression=average_express)
-        # Update average assessment rate of the person
-        recalculate_average_marks(person)
-        return HttpResponse('OK')
-    if request.method == 'GET':
-        if request.GET.get('student_id'):
-            try:
-                student_id = request.GET['student_id']
-                student = PersonInfo.objects.filter(student_id=student_id)[0]
-            except MultiValueDictKeyError:
-                return HttpResponse('Error 110')
-            except ObjectDoesNotExist:
-                return HttpResponse('Error 233')
-            total_assessment = student.assessment_set.all().filter(deleted=False)
-            json_response = serializers.serialize('json', total_assessment)
-        elif request.GET.get('rank'):
-            json_response = get_ranked_person_via_department(request)
-        else:
-            json_response = False
-
-        if json_response:
-            return HttpResponse(json_response, content_type='application/json')
-        else:
-            return HttpResponse('Error 110')
 
 
 def get_stat(request):

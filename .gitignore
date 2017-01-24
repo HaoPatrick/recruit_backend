@@ -1,2 +1,4 @@
 .idea
 api/info.txt
+*pycache*
+*_auto_*
