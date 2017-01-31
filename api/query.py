@@ -149,6 +149,12 @@ def save_a_person_to_database(request):
             raise QSCError('Invalid Email')
         user_agent = request.POST['user_agent']
         time_spend = request.POST['time_spend']
+
+        # Check if already signed in and change the inclination.
+        invalid_person = PersonInfo.objects.exclude(deleted=True).filter(student_id=student_id)
+        if invalid_person and (invalid_person[0].inclination_one != inclination_one
+                               or invalid_person[0].inclination_two != inclination_two):
+            raise QSCError('Can not change department!')
     except MultiValueDictKeyError:
         return 'Error 110'
     except ObjectDoesNotExist:
@@ -160,9 +166,7 @@ def save_a_person_to_database(request):
     try:
         department_one = Department.objects.get(name=inclination_one)
         department_two = Department.objects.get(name=inclination_two)
-        invalid_person = PersonInfo.objects.exclude(deleted=True).filter(student_id=student_id)[0]
-        if invalid_person.inclination_one != inclination_one or invalid_person.inclination_two != inclination_two:
-            raise QSCError('Can not change department')
+
     except ObjectDoesNotExist:
         department_one = department_two = False
     except QSCError as e:
