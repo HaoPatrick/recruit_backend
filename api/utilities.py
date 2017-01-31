@@ -49,3 +49,8 @@ def message(msg):
         "message": msg
     }
     return json.dumps(result)
+
+
+def xss_protection(raw_html):
+    raw_html = raw_html.replace('<', '[').replace('>', ']').replace('\'', '`').replace('"', '`').replace("&", '%')
+    return raw_html

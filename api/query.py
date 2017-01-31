@@ -4,6 +4,7 @@ from django.db.models import Q
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils.datastructures import MultiValueDictKeyError
 import json
+import api.utilities as utility
 
 
 def detail_person_exclude_query(request):
@@ -171,11 +172,9 @@ def save_a_person_to_database(request):
         department_one = department_two = False
     except QSCError as e:
         return e.value
-    # TODO: Validate the post data
-    # purify html
-    self_intro = self_intro.replace('(', 'a').replace(')', 'b').replace('on', 'hhh')
-    question_one = question_one.replace('(', 'a').replace(')', 'b').replace('on', 'hhh')
-    question_two = question_two.replace('(', 'a').replace(')', 'b').replace('on', 'hhh')
+    self_intro = utility.xss_protection(self_intro)
+    question_one = utility.xss_protection(question_one)
+    question_two = utility.xss_protection(question_two)
 
     is_spam = False
 
