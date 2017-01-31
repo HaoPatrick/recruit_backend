@@ -32,7 +32,7 @@ data:
 'time_spend': ''
 
 -----
-Error 110: You missed a important parama.
+Error 110: You missed a important param.
 Error 233: Invalid post.
 ```
 

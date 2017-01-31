@@ -295,7 +295,8 @@ class RecycleTest(TestCase):
             'cookie': '123'
         })
         json_response = json.loads(response.content.decode('utf-8'))
-        self.assertEqual(json_response[0]['fields']['name'], NORMAL_PERSON)
+        # print(json_response)
+        self.assertEqual(json_response['person'][0]['fields']['name'], NORMAL_PERSON)
 
     def test_recover_retrieve(self):
         initialize_database()

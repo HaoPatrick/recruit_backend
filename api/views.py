@@ -6,6 +6,7 @@ from api.authenticate import generate_cookie
 from api.authenticate import login_required
 from api.query import *
 from api.statistic import *
+import api.utilities as utility
 import json
 
 
@@ -49,6 +50,9 @@ def save_person_info(request):
 
 
 def get_detailed_person(request):
+    """If exclude in the GET body,
+        print
+        """
     if not login_required(request):
         return HttpResponse('Authenticate error')
     if request.method == 'GET':
@@ -64,6 +68,11 @@ def get_detailed_person(request):
 
 
 def retrieve_person(request):
+    """
+    Performance issues.
+    :param request:
+    :return:
+    """
     if not login_required(request):
         return HttpResponse('Authenticate error')
     if request.method == 'GET':
@@ -95,7 +104,7 @@ def retrieve_person(request):
             try:
                 page_number = int(page_number) - 1
             except ValueError:
-                return HttpResponse('Erroooooooooor 110')
+                return HttpResponse('Error 110')
             json_response = list_response[page_number * 20:page_number + 20]
         else:
             try:
@@ -104,7 +113,7 @@ def retrieve_person(request):
                 if request.GET.get('end'):
                     query_end = int(request.GET['end'])
             except ValueError:
-                return HttpResponse('Erroooooooooor 110')
+                return HttpResponse('Error 110')
             if query_end > query_start >= 0:
                 json_response = list_response[query_start:query_end]
             elif query_start != 0 and query_end == 0:
@@ -137,7 +146,7 @@ def manage_each_person(request):
                 if_star = int(request.POST['star'])
             person = PersonInfo.objects.filter(student_id=student_id)
         except MultiValueDictKeyError:
-            return HttpResponse('Errrrrrrrrrrrrrrrrrror 110')
+            return HttpResponse('Error 110')
         except IndexError:
             return HttpResponse('Error 233')
         if if_star == 1:
@@ -255,12 +264,27 @@ def delete_item(request):
 
 
 def recycle(request):
+    # TODO : here
     if request.method == 'GET':
-        person = list(PersonInfo.objects.filter(deleted=True))
-        department = list(Department.objects.filter(deleted=True))
+        person = PersonInfo.objects.filter(deleted=True)
+        department = Department.objects.filter(deleted=True)
+        person_info_list = list(map(utility.deserialize_person, person))
+        department_info_list = list(map(utility.deserialize_department, department))
+        # person_json=
+        # person_json = serializers.serialize('json', person)
+        # department_json = serializers.serialize('json', department)
         # assessment = list(Assessment.objects.filter(deleted=True))
-        return_list = set(person + department)
-        return_list = serializers.serialize('json', return_list)
+        # return_list = {
+        #     'person': person.,
+        #     'department': department_json
+        # }
+        # return_list = json.dumps(return_list)
+        return_list = {
+            "person": person_info_list,
+            "department": department_info_list
+        }
+        return_list = json.dumps(return_list)
+        # return_list = serializers.serialize('json', return_list)
         return HttpResponse(return_list, content_type='application/json')
 
 

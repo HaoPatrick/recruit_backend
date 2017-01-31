@@ -205,9 +205,10 @@ def get_stats_via_department():
     all_department = Department.objects.all()
     stats_list = []
     for depart in all_department:
-        stats_list.append(
-            {'name': depart.name,
-             'count': depart.personinfo_set.count()})
+        stats_list.append({
+            'name': depart.name,
+            'count': depart.personinfo_set.count()
+        })
     json_response = json.dumps(stats_list)
     return json_response
 
