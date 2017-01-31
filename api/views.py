@@ -40,13 +40,13 @@ def authentication(request):
 @csrf_exempt
 def save_person_info(request):
     if request.method == 'POST':
-        result = save_a_person_to_database(request)
-        if result:
-            return HttpResponse('OK')
-        else:
-            return HttpResponse('Error 110')
+        response_message = save_a_person_to_database(request)
     else:
-        return HttpResponse('Error 233')
+        response_message = 'Error 233'
+    response_message = {
+        "message": response_message
+    }
+    return HttpResponse(json.dumps(response_message))
 
 
 def get_detailed_person(request):
@@ -64,7 +64,7 @@ def get_detailed_person(request):
             json_person = detail_person_combine_query(request)
         return HttpResponse(json_person, content_type='application/json')
     else:
-        return HttpResponse('Error 233')
+        return HttpResponse(utility.message('Error 110'))
 
 
 def retrieve_person(request):
@@ -104,7 +104,7 @@ def retrieve_person(request):
             try:
                 page_number = int(page_number) - 1
             except ValueError:
-                return HttpResponse('Error 110')
+                return HttpResponse(utility.message('Error 110'))
             json_response = list_response[page_number * 20:page_number + 20]
         else:
             try:
@@ -113,7 +113,7 @@ def retrieve_person(request):
                 if request.GET.get('end'):
                     query_end = int(request.GET['end'])
             except ValueError:
-                return HttpResponse('Error 110')
+                return HttpResponse(utility.message('Error 110'))
             if query_end > query_start >= 0:
                 json_response = list_response[query_start:query_end]
             elif query_start != 0 and query_end == 0:
@@ -121,7 +121,7 @@ def retrieve_person(request):
             elif query_end == 0 and query_start == 0:
                 json_response = list_response
             else:
-                return HttpResponse('Erroooooooooor 110')
+                return HttpResponse(utility.message('Error 110'))
         # json_response.append({'total': len(list_response)})
         json_person = json.dumps(json_response)
         # json_person = serializers.serialize('json', list_response)
@@ -146,9 +146,9 @@ def manage_each_person(request):
                 if_star = int(request.POST['star'])
             person = PersonInfo.objects.filter(student_id=student_id)
         except MultiValueDictKeyError:
-            return HttpResponse('Error 110')
+            return HttpResponse(utility.message('Error 110'))
         except IndexError:
-            return HttpResponse('Error 233')
+            return HttpResponse(utility.message('Error 233'))
         if if_star == 1:
             for each_person in person:
                 each_person.star_amount += 1
@@ -163,7 +163,7 @@ def manage_each_person(request):
                 each_person.inc_one_time = inclination_one_time
         for each_person in person:
             each_person.save()
-        return HttpResponse('OK')
+        return HttpResponse(utility.message('OK'))
 
     return HttpResponse('Oh my bad guy')
 
@@ -179,7 +179,7 @@ def department_info(request):
             desc = request.POST['desc']
             question = request.POST['ques']
         except MultiValueDictKeyError:
-            return HttpResponse('Error 110')
+            return HttpResponse(utility.message('Error 110'))
         try:
             target = Department.objects.get(nick_name=nick_name)
         except ObjectDoesNotExist:
@@ -193,7 +193,7 @@ def department_info(request):
         target.desc = desc
         target.question = question
         target.save()
-        return HttpResponse('OK')
+        return HttpResponse(utility.message('OK'))
     elif request.method == 'GET':
         if request.GET.get('stats'):
             json_response = get_stats_via_department()
@@ -203,7 +203,7 @@ def department_info(request):
         if json_response:
             return HttpResponse(json_response, content_type='application/json')
         else:
-            return HttpResponse('Error 110')
+            return HttpResponse(utility.message('Error 110'))
 
 
 @csrf_exempt
@@ -253,14 +253,14 @@ def delete_item(request):
             except ObjectDoesNotExist:
                 return HttpResponse('Does not exist')
             except MultiValueDictKeyError:
-                return HttpResponse('Error 110')
+                return HttpResponse(utility.message('Error 110'))
             if recover_signal == '1':
                 assessment.deleted = False
             else:
                 assessment.deleted = True
             assessment.save()
             recalculate_average_marks(student)
-        return HttpResponse('OK')
+        return HttpResponse(utility.message('OK'))
 
 
 def recycle(request):

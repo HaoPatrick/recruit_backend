@@ -6,7 +6,6 @@ from django.utils.datastructures import MultiValueDictKeyError
 import json
 
 
-# TODO: Warning, no test below!!!
 def detail_person_exclude_query(request):
     total_person = PersonInfo.objects.filter(deleted=False)
     if request.GET.get('department'):
@@ -147,22 +146,27 @@ def save_a_person_to_database(request):
         photo = request.POST['photo']
         mail_address = request.POST['mail']
         if not validate_email_address(mail_address):
-            raise EmailError('Invalid Email')
+            raise QSCError('Invalid Email')
         user_agent = request.POST['user_agent']
         time_spend = request.POST['time_spend']
     except MultiValueDictKeyError:
-        return False
+        return 'Error 110'
     except ObjectDoesNotExist:
-        return False
+        return 'Error 233'
     except ValueError:
-        return False
-    except EmailError:
-        return False
+        return 'Error 233'
+    except QSCError as e:
+        return e.value
     try:
         department_one = Department.objects.get(name=inclination_one)
         department_two = Department.objects.get(name=inclination_two)
+        invalid_person = PersonInfo.objects.exclude(deleted=True).filter(student_id=student_id)[0]
+        if invalid_person.inclination_one != inclination_one or invalid_person.inclination_two != inclination_two:
+            raise QSCError('Can not change department')
     except ObjectDoesNotExist:
         department_one = department_two = False
+    except QSCError as e:
+        return e.value
     # TODO: Validate the post data
     # purify html
     self_intro = self_intro.replace('(', 'a').replace(')', 'b').replace('on', 'hhh')
@@ -170,6 +174,7 @@ def save_a_person_to_database(request):
     question_two = question_two.replace('(', 'a').replace(')', 'b').replace('on', 'hhh')
 
     is_spam = False
+
     person = PersonInfo.objects.create(
         name=name,
         student_id=student_id,
@@ -198,7 +203,7 @@ def save_a_person_to_database(request):
         # send_sms(phone_number, name)
     else:
         print('test so skip the email')
-    return True
+    return 'OK'
 
 
 def get_stats_via_department():
@@ -297,7 +302,7 @@ def send_email(mail_address, name, stu_id, phone_number, inc_one, inc_two):
     print(r.content.decode('utf-8'))
 
 
-class EmailError(Exception):
+class QSCError(Exception):
     def __init__(self, value):
         self.value = value
 

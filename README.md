@@ -54,3 +54,10 @@ response_token:TOKEN
 The token should be valid for the next 24 hours
 
 
+设定1:
+可以修改报名表，重复提交即可，但是不可以修改部门
+
+设定2:
+直接保存所有的报名表，不覆盖已有的
+
+

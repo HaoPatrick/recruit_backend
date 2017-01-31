@@ -10,6 +10,17 @@ USER_NAME = 'qscqscdadada'
 PASS_WORD = 'ahaqsc'
 
 
+def initialize_database():
+    AuthCookie.objects.create(cookie_value='123')
+    PersonInfo.objects.create(name='hao', student_id='2255', gender='3', deleted=True)
+    PersonInfo.objects.create(name='test', student_id='1234', gender='3',
+                              inclination_one="abc", inclination_two="bcd", deleted=False)
+    Department.objects.create(nick_name='123', name='abc', deleted=False)
+    Department.objects.create(nick_name='234', name='bcd', deleted=False)
+    temp_depart = Department.objects.create(nick_name='233', name='a2c', deleted=False)
+    temp_person = temp_depart.personinfo_set.create(name='name2', student_id='234', gender='2', deleted=False)
+
+
 class NewPostTest(TestCase):
     def test_can_save_a_post(self):
         initialize_database()
@@ -32,7 +43,7 @@ class NewPostTest(TestCase):
             'user_agent': 'lkjas',
             'time_spend': '123456'
         })
-        self.assertEqual(response.content, b'OK')
+        self.assertEqual(response.content, b'{"message": "OK"}')
         # self.assertEqual(PersonInfo.objects.count(), 1)
         new_item = PersonInfo.objects.last()
         self.assertEqual(new_item.name, 'hao_ttt')
@@ -63,7 +74,7 @@ class NewPostTest(TestCase):
             'inclination_two': '人力资源部门',
             'time_spend': '123456'
         })
-        self.assertEqual(response.content, b'Error 110')
+        self.assertEqual(response.content, b'{"message": "Error 110"}')
         self.assertEqual(PersonInfo.objects.count(), 0)
 
     def test_time_spend_type_error(self):
@@ -110,12 +121,36 @@ class NewPostTest(TestCase):
         # 'user_agent': 'lkjas',
         #         'time_spend': '123456'
         #     })
-        #     self.assertEqual(response.content, b'OK')
+        #     self.assertEqual(response.content, b'{"message": "OK"}')
         #     self.assertEqual(PersonInfo.objects.count(), 1)
         #     new_item = PersonInfo.objects.first()
         #     self.assertEqual(new_item.name, 'haoxiangpeng')
         #     self.assertEqual(new_item.share_work, 'nihao')
         #     self.assertEqual(new_item.self_intro, 'Hello World.')
+
+    def test_cannot_change_department(self):
+        initialize_database()
+        c = Client()
+        response = c.post('/api/save', {
+            'name': 'test',
+            'student_id': '1234',
+            'gender': '2',
+            'major': 'CS',
+            'grade': '1',
+            'phone_number': '13208020663',
+            'self_intro': 'Hello World. Test driven development',
+            'question_one': 'Hello World. Test driven development',
+            'question_two': 'Hello World. Test driven development',
+            'inclination_one': 'abcd',
+            'inclination_two': 'bcd',
+            'share_work': 'lkjasdf',
+            'photo': 'photo',
+            'mail': 'hao@bao.com',
+            'user_agent': 'lkjas',
+            'time_spend': '123456'
+        })
+        json_response = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(json_response['message'], 'Can not change department!')
 
 
 class AuthenticTest(TestCase):
@@ -194,7 +229,7 @@ class DepartmentManage(TestCase):
             'ques': '你是咸鱼吗？',
             'cookie': '123'
         })
-        self.assertEqual(response.content, b'OK')
+        self.assertEqual(response.content, b'{"message": "OK"}')
         current_depart = Department.objects.first()
         self.assertEqual(current_depart.name, '技术研发中心')
         self.assertEqual(current_depart.desc, '全浙大最强技术')
@@ -233,7 +268,7 @@ class DepartmentManage(TestCase):
             'desc': 'def',
             'ques': '233'
         })
-        self.assertEqual(response.content, b'OK')
+        self.assertEqual(response.content, b'{"message": "OK"}')
         target_depart = Department.objects.first()
         self.assertEqual(target_depart.desc, 'def')
         self.assertEqual(target_depart.question, '233')
@@ -268,17 +303,8 @@ class DepartmentManage(TestCase):
             'recover': '0',
             'nick_name': 'tech'
         })
-        self.assertEqual(response.content, b'OK')
+        self.assertEqual(response.content, b'{"message": "OK"}')
         self.assertEqual(Department.objects.first().deleted, True)
-
-
-def initialize_database():
-    AuthCookie.objects.create(cookie_value='123')
-    PersonInfo.objects.create(name='hao', student_id='2255', gender='3', deleted=True)
-    Department.objects.create(nick_name='123', name='abc', deleted=True)
-
-    temp_depart = Department.objects.create(nick_name='233', name='a2c', deleted=False)
-    temp_person = temp_depart.personinfo_set.create(name='name2', student_id='234', gender='2', deleted=False)
 
 
 class RecycleTest(TestCase):

@@ -1,3 +1,6 @@
+import json
+
+
 def deserialize_person(person):
     result = {
         "model": "person",
@@ -39,3 +42,10 @@ def deserialize_department(department):
         }
     }
     return result
+
+
+def message(msg):
+    result = {
+        "message": msg
+    }
+    return json.dumps(result)
