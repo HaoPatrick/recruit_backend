@@ -264,27 +264,16 @@ def delete_item(request):
 
 
 def recycle(request):
-    # TODO : here
     if request.method == 'GET':
         person = PersonInfo.objects.filter(deleted=True)
         department = Department.objects.filter(deleted=True)
         person_info_list = list(map(utility.deserialize_person, person))
         department_info_list = list(map(utility.deserialize_department, department))
-        # person_json=
-        # person_json = serializers.serialize('json', person)
-        # department_json = serializers.serialize('json', department)
-        # assessment = list(Assessment.objects.filter(deleted=True))
-        # return_list = {
-        #     'person': person.,
-        #     'department': department_json
-        # }
-        # return_list = json.dumps(return_list)
         return_list = {
             "person": person_info_list,
             "department": department_info_list
         }
         return_list = json.dumps(return_list)
-        # return_list = serializers.serialize('json', return_list)
         return HttpResponse(return_list, content_type='application/json')
 
 
