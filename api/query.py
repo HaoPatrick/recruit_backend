@@ -151,7 +151,7 @@ def save_a_person_to_database(request):
         user_agent = request.POST['user_agent']
         time_spend = request.POST['time_spend']
 
-        # Check if already signed in and change the inclination.
+        # Invalid if same person change the inclination
         invalid_person = PersonInfo.objects.exclude(deleted=True).filter(student_id=student_id)
         if invalid_person and (invalid_person[0].inclination_one != inclination_one
                                or invalid_person[0].inclination_two != inclination_two):
