@@ -15,7 +15,7 @@ def user_and_password_auth(user, password):
         return False
 
 
-def generate_cookie():
+def generate_token():
     import random
     import hashlib
     datetime_now = str(datetime.now())
@@ -24,7 +24,7 @@ def generate_cookie():
     return cookie
 
 
-def auth_cookie(cookie_value):
+def auth_token(cookie_value):
     try:
         token = AuthCookie.objects.get(cookie_value=cookie_value)
     except ObjectDoesNotExist as e:
@@ -41,21 +41,21 @@ def auth_cookie(cookie_value):
 def login_required(request):
     try:
         if request.POST.get('cookie'):
-            token_valid = auth_cookie(request.POST['cookie'])
+            token_valid = auth_token(request.POST['cookie'])
             if not token_valid:
-                raise CookieError('Invalid token')
+                raise TokenError('Invalid token')
         elif request.GET.get('cookie'):
-            token_valid = auth_cookie(request.GET['cookie'])
+            token_valid = auth_token(request.GET['cookie'])
             if not token_valid:
-                raise CookieError('Invalid token')
+                raise TokenError('Invalid token')
         else:
-            raise CookieError('Invalid token')
-    except CookieError:
+            raise TokenError('Invalid token')
+    except TokenError:
         return False
     return True
 
 
-class CookieError(Exception):
+class TokenError(Exception):
     def __init__(self, value):
         self.value = value
 

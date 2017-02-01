@@ -2,7 +2,7 @@ from django.http import HttpResponse
 from api.models import AuthCookie
 from django.views.decorators.csrf import csrf_exempt
 from api.authenticate import user_and_password_auth
-from api.authenticate import generate_cookie
+from api.authenticate import generate_token
 from api.authenticate import login_required
 from api.query import *
 from api.statistic import *
@@ -12,7 +12,7 @@ import json
 
 # Create your views here.
 def test(request):
-    return HttpResponse('Test OK')
+    return HttpResponse('Test Failed, 233')
 
 
 @csrf_exempt
@@ -23,18 +23,22 @@ def authentication(request):
             pass_word = request.POST['pass_word']
             if_correct = user_and_password_auth(user=user_name, password=pass_word)
             if if_correct:
-                response_cookie = generate_cookie()
+                response_cookie = generate_token()
                 AuthCookie.objects.create(cookie_value=response_cookie)
-                json_response = json.dumps([{'login': 'OK', 'response_token': response_cookie}])
+                json_response = utility.message(response_cookie)
                 return HttpResponse(json_response, content_type='application/json')
             else:
-                return HttpResponse('Authenticate failed')
+                return HttpResponse(
+                    utility.message('Authenticate failed'), content_type='application/json')
         except MultiValueDictKeyError:
-            return HttpResponse('Authenticate failed')
+            return HttpResponse(
+                utility.message('Authenticate failed'), content_type='application/json')
         except Exception as e:
-            return HttpResponse(e)
+            return HttpResponse(
+                utility.message(e), content_type='application/json')
     else:
-        return HttpResponse('Bad boy...')
+        return HttpResponse(
+            utility.message('Authenticate failed'), content_type='application/json')
 
 
 @csrf_exempt

@@ -160,9 +160,9 @@ class AuthenticTest(TestCase):
             'user_name': USER_NAME,
             'pass_word': PASS_WORD
         })
-        json_content = json.loads(response.content.decode('utf-8'))[0]
-        self.assertEqual(json_content['login'], 'OK')
-        self.assertEqual(len(json_content['response_token']), 64)
+        json_content = json.loads(response.content.decode('utf-8'))
+        self.assertNotEqual(json_content['message'], 'Authenticate failed')
+        self.assertEqual(len(json_content['message']), 64)
 
     def test_wrong_password(self):
         c = Client()
@@ -170,14 +170,14 @@ class AuthenticTest(TestCase):
             'user_name': USER_NAME,
             'pass_word': 'qsc'
         })
-        self.assertEqual(response.content, b'Authenticate failed')
+        self.assertEqual(response.content, b'{"message": "Authenticate failed"}')
 
     def test_missing_param(self):
         c = Client()
         response = c.post('/api/auth', {
             'user_name': USER_NAME
         })
-        self.assertEqual(response.content, b'Authenticate failed')
+        self.assertEqual(response.content, b'{"message": "Authenticate failed"}')
 
 
 class RetrievePersonInfo(TestCase):
@@ -188,8 +188,8 @@ class RetrievePersonInfo(TestCase):
             'user_name': USER_NAME,
             'pass_word': PASS_WORD
         })
-        json_content = json.loads(response.content.decode('utf-8'))[0]
-        token = json_content['response_token']
+        json_content = json.loads(response.content.decode('utf-8'))
+        token = json_content['message']
         c.post('/api/save', {
             'name': 'hao',
             'student_id': '3140102255',
