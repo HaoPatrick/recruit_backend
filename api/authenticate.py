@@ -9,10 +9,8 @@ def user_and_password_auth(user, password):
     with open(os.path.join(base, 'info.txt'), 'r') as f:
         correct_user = f.readline()[:-1]
         correct_pass = f.readline()[:-1]
-    if user == correct_user and password == correct_pass:
-        return True
-    else:
-        return False
+    if user != correct_user or password != correct_pass:
+        raise TokenError("Authenticate failed")
 
 
 def generate_token():
@@ -20,8 +18,8 @@ def generate_token():
     import hashlib
     datetime_now = str(datetime.now())
     encryption_salt = datetime_now + 'qsclove' + str(random.random())
-    cookie = hashlib.sha256(encryption_salt.encode('utf-8')).hexdigest()
-    return cookie
+    token = hashlib.sha256(encryption_salt.encode('utf-8')).hexdigest()
+    return token
 
 
 def auth_token(cookie_value):
@@ -61,4 +59,3 @@ class TokenError(Exception):
 
     def __str__(self):
         return repr(self.value)
-

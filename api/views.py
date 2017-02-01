@@ -4,6 +4,7 @@ from django.views.decorators.csrf import csrf_exempt
 from api.authenticate import user_and_password_auth
 from api.authenticate import generate_token
 from api.authenticate import login_required
+import api.authenticate as auth
 from api.query import *
 from api.statistic import *
 import api.utilities as utility
@@ -21,15 +22,15 @@ def authentication(request):
         try:
             user_name = request.POST['user_name']
             pass_word = request.POST['pass_word']
-            if_correct = user_and_password_auth(user=user_name, password=pass_word)
-            if if_correct:
-                response_cookie = generate_token()
-                AuthCookie.objects.create(cookie_value=response_cookie)
-                json_response = utility.message(response_cookie)
-                return HttpResponse(json_response, content_type='application/json')
-            else:
+            try:
+                user_and_password_auth(user=user_name, password=pass_word)
+            except auth.TokenError as e:
                 return HttpResponse(
-                    utility.message('Authenticate failed'), content_type='application/json')
+                    utility.message(e.value), content_type='application/json')
+            response_cookie = generate_token()
+            AuthCookie.objects.create(cookie_value=response_cookie)
+            json_response = utility.message(response_cookie)
+            return HttpResponse(json_response, content_type='application/json')
         except MultiValueDictKeyError:
             return HttpResponse(
                 utility.message('Authenticate failed'), content_type='application/json')
