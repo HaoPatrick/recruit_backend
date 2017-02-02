@@ -34,6 +34,14 @@ def detail_person_exclude_query(request):
         total_person = total_person.filter(Q(user_agent__contains='MSIE') | Q(user_agent='360SE'))
     if request.GET.get('edge'):
         total_person = total_person.filter(user_agent__contains='Edge')
+    if request.GET.get('page'):
+        page_number = request.GET['page']
+        try:
+            # TODO: Dangerous
+            page_number = int(page_number) - 1
+        except ValueError:
+            return False
+        total_person = total_person[page_number * 20:page_number * 20 + 20]
     list_response = []
     dict_response = []
     for index, person in enumerate(total_person):
