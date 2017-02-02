@@ -87,31 +87,31 @@ def retrieve_person(request):
         all_person = PersonInfo.objects.all().exclude(deleted=True)
         list_response = []
         dict_response = []
-        for index, person in enumerate(all_person):
-            if person.student_id in dict_response:
-                continue
-            else:
-                dict_response.append(person.student_id)
-            list_response.append({
-                'pk': person.pk,
-                'model': "Person",
-                'fields': {
-                    'name': person.name,
-                    'gender': person.gender,
-                    'student_id': person.student_id,
-                    'inclination_one': person.inclination_one,
-                    'inclination_two': person.inclination_two,
-                    'major': person.major,
-                    'phone_number': person.phone_number
-                }
-            })
+        # for index, person in enumerate(all_person):
+        #     if person.student_id in dict_response:
+        #         continue
+        #     else:
+        #         dict_response.append(person.student_id)
+        #     list_response.append({
+        #         'pk': person.pk,
+        #         'model': "Person",
+        #         'fields': {
+        #             'name': person.name,
+        #             'gender': person.gender,
+        #             'student_id': person.student_id,
+        #             'inclination_one': person.inclination_one,
+        #             'inclination_two': person.inclination_two,
+        #             'major': person.major,
+        #             'phone_number': person.phone_number
+        #         }
+        #     })
         if request.GET.get('page'):
             page_number = request.GET['page']
             try:
                 page_number = int(page_number) - 1
             except ValueError:
                 return HttpResponse(utility.message('Error 110'))
-            json_response = list_response[page_number * 20:page_number + 20]
+            json_response = all_person[page_number * 20:page_number + 20]
         else:
             try:
                 if request.GET.get('start'):
@@ -121,16 +121,15 @@ def retrieve_person(request):
             except ValueError:
                 return HttpResponse(utility.message('Error 110'))
             if query_end > query_start >= 0:
-                json_response = list_response[query_start:query_end]
+                json_response = all_person[query_start:query_end]
             elif query_start != 0 and query_end == 0:
-                json_response = list_response[query_start:]
+                json_response = all_person[query_start:]
             elif query_end == 0 and query_start == 0:
-                json_response = list_response
+                json_response = all_person
             else:
                 return HttpResponse(utility.message('Error 110'))
-        # json_response.append({'total': len(list_response)})
+        json_response = list(map(utility.deserialize_person, json_response))
         json_person = json.dumps(json_response)
-        # json_person = serializers.serialize('json', list_response)
         return HttpResponse(json_person, content_type='application/json')
 
 
