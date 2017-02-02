@@ -43,7 +43,7 @@ def detail_person_exclude_query(request):
             dict_response.append(person.student_id)
         list_response.append({
             'pk': person.pk,
-            'model': person._meta.model_name,
+            'model': "Person",
             'fields': {
                 'name': person.name,
                 'gender': person.gender,

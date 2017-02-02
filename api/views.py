@@ -75,6 +75,7 @@ def get_detailed_person(request):
 def retrieve_person(request):
     """
     Performance issues.
+    Return Persons grouped by pages
     :param request:
     :return:
     """
@@ -93,7 +94,7 @@ def retrieve_person(request):
                 dict_response.append(person.student_id)
             list_response.append({
                 'pk': person.pk,
-                'model': person._meta.model_name,
+                'model': "Person",
                 'fields': {
                     'name': person.name,
                     'gender': person.gender,
