@@ -17,8 +17,6 @@ def initialize_database():
                               inclination_one="abc", inclination_two="bcd", deleted=False)
     Department.objects.create(nick_name='123', name='abc', deleted=False)
     Department.objects.create(nick_name='234', name='bcd', deleted=False)
-    temp_depart = Department.objects.create(nick_name='233', name='a2c', deleted=False)
-    temp_person = temp_depart.personinfo_set.create(name='name2', student_id='234', gender='2', deleted=False)
 
 
 class NewPostTest(TestCase):

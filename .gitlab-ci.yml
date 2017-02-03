@@ -3,7 +3,6 @@ image: django
 all_tests:
   script:
    - sh ./sh_scripts/install.sh
-   - python3 manage.py migrate
    - python3 manage.py test -k
   when: on_success
   only:
