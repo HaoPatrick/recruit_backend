@@ -2,3 +2,4 @@
 *pycache*
 .coverage
 coverage_html
+htmlcov

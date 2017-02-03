@@ -59,7 +59,7 @@ def get_detailed_person(request):
         print
         """
     if not login_required(request):
-        return HttpResponse('Authenticate error')
+        return HttpResponse('Authenticate failed')
     if request.method == 'GET':
         if request.GET.get('exclude'):
             json_person = detail_person_exclude_query(request)
@@ -80,7 +80,7 @@ def retrieve_person(request):
     :return:
     """
     if not login_required(request):
-        return HttpResponse('Authenticate error')
+        return HttpResponse('Authenticate Failed')
     if request.method == 'GET':
         query_start = 0
         query_end = 0
@@ -91,7 +91,7 @@ def retrieve_person(request):
                 page_number = int(page_number) - 1
             except ValueError:
                 return HttpResponse(utility.message('Error 110'))
-            json_response = all_person[page_number * 20:page_number*20 + 20]
+            json_response = all_person[page_number * 20:page_number * 20 + 20]
         else:
             try:
                 if request.GET.get('start'):
@@ -116,7 +116,7 @@ def retrieve_person(request):
 @csrf_exempt
 def manage_each_person(request):
     if not login_required(request):
-        return HttpResponse('Authenticate error')
+        return HttpResponse('Authenticate Failed')
     if request.method == 'POST':
         inclination_one_time = ''
         inclination_two_time = ''
@@ -125,7 +125,7 @@ def manage_each_person(request):
             student_id = request.POST['student_id']
             if request.POST.get('inc_one'):
                 inclination_one_time = request.POST['inc_one']
-            elif request.POST.get('inc_two'):
+            if request.POST.get('inc_two'):
                 inclination_two_time = request.POST['inc_two']
             if request.POST.get('star'):
                 if_star = int(request.POST['star'])
@@ -145,7 +145,7 @@ def manage_each_person(request):
                 each_person.inc_one_time = inclination_one_time
         if inclination_two_time:
             for each_person in person:
-                each_person.inc_one_time = inclination_one_time
+                each_person.inc_two_time = inclination_two_time
         for each_person in person:
             each_person.save()
         return HttpResponse(utility.message('OK'))
@@ -157,7 +157,7 @@ def manage_each_person(request):
 def department_info(request):
     if request.method == 'POST':
         if not login_required(request):
-            return HttpResponse('Authenticate error')
+            return HttpResponse('Authenticate Failed')
         try:
             nick_name = request.POST['niname']
             name = request.POST['name']
@@ -194,7 +194,7 @@ def department_info(request):
 @csrf_exempt
 def delete_item(request):
     if not login_required(request):
-        return HttpResponse('Authenticate error')
+        return HttpResponse('Authenticate Failed')
     if request.method == 'POST':
         if request.POST.get('nick_name'):
             nick_name = request.POST['nick_name']

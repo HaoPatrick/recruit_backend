@@ -19,6 +19,13 @@ def initialize_database():
     Department.objects.create(nick_name='234', name='bcd', deleted=False)
 
 
+class YouNameItTest(TestCase):
+    def test_nothing(self):
+        c = Client()
+        response = c.get('/api/test')
+        self.assertContains(response, 'Test Failed, 233')
+
+
 class NewPostTest(TestCase):
     def test_can_save_a_post(self):
         initialize_database()
@@ -150,6 +157,11 @@ class NewPostTest(TestCase):
         json_response = json.loads(response.content.decode('utf-8'))
         self.assertEqual(json_response['message'], 'Can not change department!')
 
+    def test_not_post(self):
+        c = Client()
+        response = c.get('/api/save')
+        self.assertContains(response, '233')
+
 
 class AuthenticTest(TestCase):
     def test_success_auth(self):
@@ -161,6 +173,11 @@ class AuthenticTest(TestCase):
         json_content = json.loads(response.content.decode('utf-8'))
         self.assertNotEqual(json_content['message'], 'Authenticate failed')
         self.assertEqual(len(json_content['message']), 64)
+
+    def test_nothing(self):
+        c = Client()
+        response = c.get('/api/auth')
+        self.assertContains(response, 'Authenticate failed')
 
     def test_wrong_password(self):
         c = Client()
@@ -215,6 +232,11 @@ class RetrievePersonInfo(TestCase):
         self.assertEqual(json_detail['fields']['name'], 'hao')
         self.assertEqual(json_detail['fields']['photo'], 'photo')
 
+    def test_not_authed(self):
+        c = Client()
+        response = c.get('/api/detail')
+        self.assertEqual(response.content.decode('utf-8'), 'Authenticate failed')
+
 
 class DepartmentManage(TestCase):
     def test_save_info(self):
@@ -239,7 +261,7 @@ class DepartmentManage(TestCase):
             'desc': '全浙大最强技术',
             'ques': '你是咸鱼吗？'
         })
-        self.assertEqual(response.content, b'Authenticate error')
+        self.assertEqual(response.content, b'Authenticate Failed')
         self.assertEqual(Department.objects.count(), 0)
 
     def test_retrieve_info(self):
@@ -336,3 +358,39 @@ class RecycleTest(TestCase):
         # self.assertEqual(len(response), 1)
         self.assertNotEqual(len(response), 0)
         # self.assertEqual(Department.objects.count(), 2)
+
+
+class ManagePerson(TestCase):
+    def test_can_star(self):
+        initialize_database()
+        c = Client()
+        response = c.post('/api/manage', {
+            'cookie': '123',
+            'star': '1',
+            'student_id': '1234'
+        })
+        test_person = PersonInfo.objects.get(student_id='1234')
+        self.assertEqual(response.content, b'{"message": "OK"}')
+        self.assertEqual(test_person.star_amount, 1)
+
+        c.post('/api/manage', {
+            'cookie': '123',
+            'star': '2',
+            'student_id': '1234'
+        })
+        test_person = PersonInfo.objects.get(student_id='1234')
+        self.assertEqual(test_person.star_amount, 0)
+
+    def test_change_time(self):
+        initialize_database()
+        c = Client()
+        response = c.post('/api/manage', {
+            'cookie': '123',
+            'inc_one': 'asdf',
+            'inc_two': 'lkwae',
+            'student_id': '1234'
+        })
+        test_person = PersonInfo.objects.get(student_id='1234')
+        self.assertEqual(response.content, b'{"message": "OK"}')
+        self.assertEqual(test_person.inc_one_time, 'asdf')
+        self.assertEqual(test_person.inc_two_time, 'lkwae')
