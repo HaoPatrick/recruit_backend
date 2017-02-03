@@ -1,2 +1,4 @@
 .idea
 *pycache*
+.coverage
+coverage_html
