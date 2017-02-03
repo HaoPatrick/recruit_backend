@@ -1,4 +1,5 @@
 API Document
+[![coverage report](https://git.zjuqsc.com/recruit/Recruit-backend-2016/badges/master/coverage.svg)](https://git.zjuqsc.com/recruit/Recruit-backend-2016/commits/master)
 ===================
 * A complete new recruitment system, using Python (django actually) as backend server.
 * This project was intended to provide easy-to-use **api** for frontend developers

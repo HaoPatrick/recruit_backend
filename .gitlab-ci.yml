@@ -1,4 +1,4 @@
-image: django
+image: python:3.5
 
 all_tests:
   script:
