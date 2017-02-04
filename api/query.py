@@ -108,7 +108,7 @@ def print_specific_department(request):
     return json_response
 
 
-def recalculate_average_marks(person):
+def recalculate_average_marks(person):  # pragma no cover
     all_assessment = person.assessment_set.all().filter(deleted=False)
     all_pro_rate = [pro.profession_rate for pro in all_assessment]
     all_coop_rate = [coop.cooperation_rate for coop in all_assessment]
@@ -253,7 +253,7 @@ def get_department_info(request):
 
 
 # TODO: Temporary filter, correct version was commented
-def get_ranked_person_via_department(request):
+def get_ranked_person_via_department(request):  # pragma no cover
     try:
         department_name = request.GET['depart']
         department = Department.objects.get(name=department_name)
@@ -274,7 +274,7 @@ def validate_email_address(email):
     return '@' in parseaddr(email)[1]
 
 
-def send_sms(phone_number, name):
+def send_sms(phone_number, name):  # pragma no cover
     import requests
     url = 'https://sms.yunpian.com/v1/sms/send.json'
     api_key = 'd0d4d333ccb057612c0325521b9403ed'
@@ -285,7 +285,7 @@ def send_sms(phone_number, name):
     requests.post(url, files={}, data=params)
 
 
-def send_email(mail_address, name, stu_id, phone_number, inc_one, inc_two):
+def send_email(mail_address, name, stu_id, phone_number, inc_one, inc_two):  # pragma no cover
     import requests
     import random
     import os.path

@@ -419,3 +419,12 @@ class ManagePerson(TestCase):
         self.assertEqual(response.content, b'{"message": "OK"}')
         self.assertEqual(test_person.inc_one_time, 'asdf')
         self.assertEqual(test_person.inc_two_time, 'lkwae')
+
+
+class GetStatistic(TestCase):
+    def test_can_get_stat(self):
+        initialize_database()
+        c = Client()
+        response = c.get('/api/statistic')
+        # print(json.loads(response.content.decode()))
+        self.assertIsNotNone(json.loads(response.content.decode()))
