@@ -14,7 +14,8 @@ def initialize_database():
     AuthCookie.objects.create(cookie_value='123')
     PersonInfo.objects.create(name='hao', student_id='2255', gender='3', deleted=True)
     PersonInfo.objects.create(name='test', student_id='1234', gender='3',
-                              inclination_one="abc", inclination_two="bcd", deleted=False)
+                              inclination_one="abc", inclination_two="bcd", user_agent='Linux Chrome Arch',
+                              deleted=False)
     Department.objects.create(nick_name='123', name='abc', deleted=False)
     Department.objects.create(nick_name='234', name='bcd', deleted=False)
 
@@ -232,10 +233,34 @@ class RetrievePersonInfo(TestCase):
         self.assertEqual(json_detail['fields']['name'], 'hao')
         self.assertEqual(json_detail['fields']['photo'], 'photo')
 
-    def test_not_authed(self):
+    def test_not_authenticated(self):
         c = Client()
         response = c.get('/api/detail')
         self.assertEqual(response.content.decode('utf-8'), 'Authenticate failed')
+
+    def test_print_person_by_department(self):
+        initialize_database()
+        c = Client()
+        response = c.get('/api/detail', {
+            'print': '1',
+            'cookie': '123',
+            'department': 'abc'
+        })
+        result = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(result[0]['model'], 'api.personinfo')
+
+    def test_get_exclude_query(self):
+        initialize_database()
+        c = Client()
+        response = c.get('/api/detail', {
+            'name': 'test',
+            'gender': '3',
+            'linux': '1',
+            'cookie': '123',
+            'exclude': '1'
+        })
+        response = json.loads(response.content.decode())
+        self.assertEqual(response[0]['fields']['name'], 'test')
 
 
 class DepartmentManage(TestCase):

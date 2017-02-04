@@ -1,5 +1,5 @@
 .idea
 *pycache*
-.coverage
+&coverage
 coverage_html
 htmlcov

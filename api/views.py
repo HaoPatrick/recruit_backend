@@ -223,28 +223,7 @@ def delete_item(request):
                 for stu in student:
                     stu.deleted = True
                     stu.save()
-        if request.POST.get('assessment'):
-            try:
-                recover_signal = request.POST['recover']
-                if request.POST.get('stu_id'):
-                    student = PersonInfo.objects.get(
-                        student_id=request.POST['stu_id'])
-                elif request.POST.get('stu_pk'):
-                    student = PersonInfo.objects.get(pk=request.POST['stu_pk'])
-                else:
-                    raise MultiValueDictKeyError
-                assess_pk = int(request.POST['pk'])
-                assessment = student.assessment_set.get(pk=assess_pk)
-            except ObjectDoesNotExist:
-                return HttpResponse('Does not exist')
-            except MultiValueDictKeyError:
-                return HttpResponse(utility.message('Error 110'))
-            if recover_signal == '1':
-                assessment.deleted = False
-            else:
-                assessment.deleted = True
-            assessment.save()
-            recalculate_average_marks(student)
+
         return HttpResponse(utility.message('OK'))
 
 
