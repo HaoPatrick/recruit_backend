@@ -23,7 +23,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = '9bj8od(fa0lxqaibnh16k2f^ybw4ov_7qv3asc^!kk0^%d+%c1'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['*']
 
@@ -32,6 +32,7 @@ TESTING = len(sys.argv) > 1 and sys.argv[1] == 'test'
 # Application definition
 
 INSTALLED_APPS = [
+    'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -81,7 +82,7 @@ WSGI_APPLICATION = 'recruit_backend.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join('../', 'db_recruit.sqlite3'),
+        'NAME': os.path.join('../database', 'db_recruit.sqlite3'),
     }
 }
 
