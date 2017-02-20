@@ -209,9 +209,8 @@ def save_a_person_to_database(request):
         person.department.add(department_one, department_two)
     from django.conf import settings
     if not settings.TESTING:
-        pass
-        # send_email(mail_address, name, student_id, phone_number, inclination_one, inclination_two)
-        # send_sms(phone_number, name)
+        send_email(mail_address, name, student_id, phone_number, inclination_one, inclination_two)
+        send_sms(phone_number, name)
     else:
         print('test so skip the email')
     return 'OK'
